@@ -3,19 +3,28 @@
 #include <TM1637Display.h>
 
 // Module connection pins (Digital Pins)
-#define CLK1 4
-#define DIO1 5
-#define CLK2 6
-#define DIO2 7
-#define CLK3 8
-#define DIO3 9
-#define TEMP 10
-#define FLOW 2
-#define RELAY 11
-#define LED 13
+#define CLK1        4
+#define DIO1        5
+#define CLK2        6
+#define DIO2        7
+#define CLK3        8
+#define DIO3        9
+#define TEMP        10
+// Must support interrupt
+#define FLOW        2
+#define COMPRESSOR  11
+#define STATUS      12
+#define LED         13
 
+// High/low temperature for thermostat (degrees)
 #define LOW_TEMP    20
 #define HIGH_TEMP   25
+
+// Halt operation above this temperature
+#define HOT_TEMP    30
+
+// Minimum flow (l/h)
+#define MIN_FLOW   50
 
 // The amount of time (in milliseconds) between tests
 #define TEST_DELAY   30
@@ -41,6 +50,14 @@ const uint8_t SEG_COOL[] =
 	SEG_A | SEG_B | SEG_C | SEG_D | SEG_E | SEG_F,   // O
 	SEG_A | SEG_B | SEG_C | SEG_D | SEG_E | SEG_F,   // O
 	SEG_D | SEG_E | SEG_F                            // L
+};
+
+const uint8_t SEG_IDLE[] =
+{
+	SEG_B | SEG_C,                                   // I
+	SEG_A | SEG_B | SEG_C | SEG_D | SEG_E | SEG_F,   // D
+	SEG_D | SEG_E | SEG_F,                           // L
+	SEG_A | SEG_D | SEG_E | SEG_F | SEG_G            // E
 };
 
 const uint8_t SEG_TEMP[] =
@@ -86,9 +103,11 @@ void setup()
     dispFlow.setSegments(off);
     dispStatus.setSegments(off);
 
-    // Switch relay off
+    // Switch compressor off
 
-    digitalWrite(RELAY, 1);
+    digitalWrite(COMPRESSOR, 1);
+
+    //Serial.begin(9600);
 }
 
 void showNumberDecDot(TM1637Display& disp, int num, bool leading_zero, uint8_t length = 4, uint8_t pos = 0, int decimal_dot_place = 1)
@@ -136,7 +155,7 @@ void flow()
     ++flowFrequency;
 } 
 
-int on = 0;
+int compressorOn = 0;
 
 bool isHot = false;
 bool noFlow = false;
@@ -206,29 +225,36 @@ void loop()
         flowFrequency = 0;                   // Reset Counter
         dispFlow.showNumberDec(litersPerHour);
 
-        digitalWrite(LED, on);
-        on = !on;
+        //-- Check flow
+        noFlow = (litersPerHour < MIN_FLOW);
     }
 
     //
     //-- Switch compressor on/off
     //
-    //digitalWrite(RELAY, on);
+    if (temp < 100*LOW_TEMP)
+    {
+        // Cool enough
+        compressorOn = false;
+    }
+    if (temp > 100*HIGH_TEMP)
+    {
+        // Too warm
+        compressorOn = true;
+    }
+    isHot = (temp > 100*HOT_TEMP);
+    digitalWrite(LED, compressorOn);
+    digitalWrite(COMPRESSOR, !compressorOn);
 
-    // Simulate
-    ++loopCount;
-    if (loopCount > 30)
-    {
-        isHot = true;
-    }
-    if (loopCount > 60)
-    {
-        noFlow = true;
-    }
+    // Signal status to Lasersaur
+
+    digitalWrite(STATUS, !isHot && !noFlow);
     
     //
     //-- Show status
     //
+
+    ++loopCount;
     if (loopCount % 2)
     {
         // Show error state
@@ -251,6 +277,9 @@ void loop()
         if (isHot || noFlow)
             dispStatus.setSegments(SEG_BARS);
         else
-            dispStatus.setSegments(SEG_COOL);
+            dispStatus.setSegments(compressorOn ? SEG_COOL : SEG_IDLE);
     }
+
+    if (loopCount >= 1024)
+        loopCount = 0;
 }
