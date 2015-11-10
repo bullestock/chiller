@@ -2,6 +2,9 @@
 #include <OneWire.h>
 #include <TM1637Display.h>
 
+#define SERIAL_DBG      0
+#define SIMULATE        0
+
 // Module connection pins (Digital Pins)
 #define CLK1        4
 #define DIO1        5
@@ -23,14 +26,17 @@
 // Halt operation above this temperature
 #define HOT_TEMP    30
 
+// Halt operation if sensor reports less than this temperature
+#define MIN_ACCEPTABLE_TEMP     10
+
 // Minimum flow (l/h)
 #define MIN_FLOW   50
 
 // The amount of time (in milliseconds) between tests
 #define TEST_DELAY   30
 
-TM1637Display dispTemp(CLK1, DIO1);
-TM1637Display dispFlow(CLK2, DIO2);
+TM1637Display dispFlow(CLK1, DIO1);
+TM1637Display dispTemp(CLK2, DIO2);
 TM1637Display dispStatus(CLK3, DIO3);
 OneWire ds(TEMP);
 
@@ -107,7 +113,9 @@ void setup()
 
     digitalWrite(COMPRESSOR, 1);
 
-    //Serial.begin(9600);
+#if SERIAL_DBG
+    Serial.begin(57600);
+#endif
 }
 
 void showNumberDecDot(TM1637Display& disp, int num, bool leading_zero, uint8_t length = 4, uint8_t pos = 0, int decimal_dot_place = 1)
@@ -116,7 +124,7 @@ void showNumberDecDot(TM1637Display& disp, int num, bool leading_zero, uint8_t l
     const static int divisors[] = { 1, 10, 100, 1000 };
     bool leading = true;
 
-    for(int8_t k = 0; k < 4; k++)
+    for (int8_t k = 0; k < 4; k++)
     {
         int divisor = divisors[4 - 1 - k];
         int d = num / divisor;
@@ -201,6 +209,7 @@ void loop()
         data[i] = ds.read();
     }
   
+    // temp holds temperature in degrees Celsisu times 100
     int temp = (data[1] << 8) + data[0];
     const int signBit = temp & 0x8000;
     if (signBit) // negative
@@ -209,7 +218,15 @@ void loop()
     }
     temp = 6*temp + temp/4;    // multiply by (100 * 0.0625) or 6.25
 
+#if SIMULATE
+    temp = 6;
+#endif
+
     showNumberDecDot(dispTemp, temp, false);
+#if SERIAL_DBG
+    Serial.print("Temp ");
+    Serial.println(temp);
+#endif
 
     //
     //-- Read flow (updated every second)
@@ -221,9 +238,16 @@ void loop()
         const unsigned long deltaTime = currentTime-cloopTime;
         cloopTime = currentTime;
         // Pulse frequency (Hz) = 7.5Q, Q is flow rate in L/min. (Results in +/- 3% range)
-        const unsigned int litersPerHour = (flowFrequency*60000.0/deltaTime / 7.5);
+        unsigned int litersPerHour = (flowFrequency*60000.0/deltaTime / 7.5);
+#if SIMULATE
+        litersPerHour = 42;
+#endif
         flowFrequency = 0;                   // Reset Counter
         dispFlow.showNumberDec(litersPerHour);
+#if SERIAL_DBG
+        Serial.print("Flow ");
+        Serial.println(litersPerHour);
+#endif
 
         //-- Check flow
         noFlow = (litersPerHour < MIN_FLOW);
@@ -242,13 +266,24 @@ void loop()
         // Too warm
         compressorOn = true;
     }
+#if SERIAL_DBG
+    Serial.print("Compressor ");
+    Serial.println(compressorOn ? "on" : "off");
+#endif
+
     isHot = (temp > 100*HOT_TEMP);
+    const bool isBogusTemp = (temp < 100*MIN_ACCEPTABLE_TEMP);
     digitalWrite(LED, compressorOn);
     digitalWrite(COMPRESSOR, !compressorOn);
 
     // Signal status to Lasersaur
 
-    digitalWrite(STATUS, !isHot && !noFlow);
+    const bool status = !isHot && !noFlow && !isBogusTemp;
+    digitalWrite(STATUS, status);
+#if SERIAL_DBG
+    Serial.print("Status ");
+    Serial.println(status ? "OK" : "ERROR");
+#endif
     
     //
     //-- Show status
@@ -257,27 +292,47 @@ void loop()
     ++loopCount;
     if (loopCount % 2)
     {
+#if SERIAL_DBG
+        Serial.print("Loop count ");
+        Serial.println(loopCount);
+#endif
         // Show error state
-        if (isHot || noFlow)
+        if (isHot || noFlow || isBogusTemp)
             showTempError = !showTempError;
-        if (isHot &&
+        if ((isHot || isBogusTemp) &&
             (!noFlow || showTempError))
         {
             dispStatus.setSegments(SEG_TEMP);
+#if SERIAL_DBG
+            Serial.println("*** TEMP ***");
+#endif
         }
         if (noFlow &&
-            (!isHot || !showTempError))
+            ((!isHot && !isBogusTemp) || !showTempError))
         {
             dispStatus.setSegments(SEG_FLOW);
+#if SERIAL_DBG
+            Serial.println("*** FLOW ***");
+#endif
         }
     }
     else
     {
         // Show OK or error bars
         if (isHot || noFlow)
+        {
             dispStatus.setSegments(SEG_BARS);
+#if SERIAL_DBG
+            Serial.println("*** ---- ***");
+#endif
+        }
         else
+        {
             dispStatus.setSegments(compressorOn ? SEG_COOL : SEG_IDLE);
+#if SERIAL_DBG
+            Serial.println(compressorOn ? "*** COOL ***" : "*** IDLE ***");
+#endif
+        }
     }
 
     if (loopCount >= 1024)
