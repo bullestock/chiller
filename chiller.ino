@@ -90,6 +90,11 @@ const uint8_t SEG_BARS[] =
 	SEG_G   // -
 };
 
+// Temperature sensor address
+byte addr[8];
+
+bool tempSensorBad = false;
+
 void setup()
 {
     // Set up interrupt for flow measurement
@@ -115,6 +120,39 @@ void setup()
 
 #if SERIAL_DBG
     Serial.begin(57600);
+#endif
+
+    // Determine temperature sensor address
+
+    if (!ds.search(addr))
+    {
+#if SERIAL_DBG
+        Serial.println("No temperature sensor found");
+#endif
+        tempSensorBad = true;
+        return;
+    }
+    if (OneWire::crc8(addr, 7) != addr[7])
+    {
+#if SERIAL_DBG
+        Serial.println("Temperature sensor bad CRC");
+#endif
+        tempSensorBad = true;
+        return;
+    }
+    if (addr[0] != 0x28)
+    {
+#if SERIAL_DBG
+        Serial.println("Temperature sensor is not DS18B20");
+#endif
+        tempSensorBad = true;
+        return;
+    }
+#if SERIAL_DBG
+    Serial.print("Found temperature sensor at");
+    for (int i = 1; i < 7; i++)
+        Serial.print(addr[i], HEX);
+    Serial.println();
 #endif
 }
 
@@ -189,8 +227,6 @@ void loop()
     //
     //-- Read temperature
     //
-    
-    const byte addr[8] = { 0x28, 0xFF, 0xFD, 0x30, 0x64, 0x14, 0x03, 0x44 };
 
     ds.reset();
     ds.select(addr);
@@ -278,7 +314,7 @@ void loop()
 
     // Signal status to Lasersaur
 
-    const bool status = !isHot && !noFlow && !isBogusTemp;
+    const bool status = !isHot && !noFlow && !isBogusTemp && !tempSensorBad;
     digitalWrite(STATUS, status);
 #if SERIAL_DBG
     Serial.print("Status ");
@@ -297,9 +333,9 @@ void loop()
         Serial.println(loopCount);
 #endif
         // Show error state
-        if (isHot || noFlow || isBogusTemp)
+        if (isHot || noFlow || isBogusTemp || tempSensorBad)
             showTempError = !showTempError;
-        if ((isHot || isBogusTemp) &&
+        if ((isHot || isBogusTemp || tempSensorBad) &&
             (!noFlow || showTempError))
         {
             dispStatus.setSegments(SEG_TEMP);
@@ -308,7 +344,7 @@ void loop()
 #endif
         }
         if (noFlow &&
-            ((!isHot && !isBogusTemp) || !showTempError))
+            ((!isHot && !isBogusTemp && !tempSensorBad) || !showTempError))
         {
             dispStatus.setSegments(SEG_FLOW);
 #if SERIAL_DBG
