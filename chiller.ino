@@ -2,7 +2,7 @@
 #include <OneWire.h>
 #include <TM1637Display.h>
 
-#define SERIAL_DBG      0
+#define SERIAL_DBG      1
 #define SIMULATE        0
 
 // Module connection pins (Digital Pins)
@@ -28,6 +28,7 @@
 
 // Halt operation if sensor reports less than this temperature
 #define MIN_ACCEPTABLE_TEMP     10
+#define MAX_ACCEPTABLE_TEMP     50
 
 // Minimum flow (l/h)
 #define MIN_FLOW   50
@@ -90,30 +91,81 @@ const uint8_t SEG_BARS[] =
 	SEG_G   // -
 };
 
+const uint8_t SEG_SENS[] =
+{
+	SEG_A | SEG_C | SEG_D | SEG_F | SEG_G,           // S
+	SEG_A | SEG_D | SEG_E | SEG_F | SEG_G,           // E
+	SEG_C | SEG_E | SEG_G,                           // n
+	SEG_A | SEG_C | SEG_D | SEG_F | SEG_G,           // S
+};
+
+const uint8_t SEG_INIT[] =
+{
+	SEG_B | SEG_C,                                   // I
+	SEG_C | SEG_E | SEG_G,                           // n
+	SEG_B | SEG_C,                                   // I
+	SEG_D | SEG_E | SEG_F | SEG_G                    // t
+};
+
 // Temperature sensor address
 byte addr[8];
 
 bool tempSensorBad = false;
 
+bool initTempSensor()
+{
+    for (int attempt = 0; attempt < 5; ++attempt)
+    {
+        // Determine temperature sensor address
+
+        if (!ds.search(addr))
+        {
+#if SERIAL_DBG
+            Serial.println("No temperature sensor found");
+#endif
+            return false;
+        }
+        if (OneWire::crc8(addr, 7) != addr[7])
+        {
+#if SERIAL_DBG
+            Serial.println("Temperature sensor bad CRC");
+#endif
+            return false;
+        }
+        if (addr[0] != 0x28)
+        {
+#if SERIAL_DBG
+            Serial.println("Temperature sensor is not DS18B20");
+#endif
+            return false;
+        }
+#if SERIAL_DBG
+        Serial.print("Found temperature sensor at ");
+        for (int i = 1; i < 7; i++)
+            Serial.print(addr[i], HEX);
+        Serial.println();
+#endif
+        const double temp = readTemp();
+        if ((temp >= MIN_ACCEPTABLE_TEMP) &&
+            (temp <= MAX_ACCEPTABLE_TEMP))
+        {
+#if SERIAL_DBG
+            Serial.print("Accepting temperature: ");
+            Serial.println(temp);
+#endif
+            return true;
+        }
+#if SERIAL_DBG
+        Serial.print("Bad temperature: ");
+        Serial.println(temp);
+#endif
+    }
+    // Failed to initialize temp sensor properly
+    return false;
+}
+
 void setup()
 {
-    // Set up interrupt for flow measurement
-    
-    pinMode(FLOW, INPUT);
-    attachInterrupt(0, flow, RISING);
-    sei();
-    cloopTime = millis();
-
-    // Initialize displays
-    
-    dispTemp.setBrightness(0x0f);
-    dispFlow.setBrightness(0x0f);
-    dispStatus.setBrightness(0x0f);
-    uint8_t off[] = { 0, 0, 0, 0 };
-    dispTemp.setSegments(off);
-    dispFlow.setSegments(off);
-    dispStatus.setSegments(off);
-
     // Switch compressor off
 
     digitalWrite(COMPRESSOR, 1);
@@ -121,39 +173,36 @@ void setup()
 #if SERIAL_DBG
     Serial.begin(57600);
 #endif
+    // Initialize displays
+    
+    dispTemp.setBrightness(0x0f);
+    dispFlow.setBrightness(0x0f);
+    dispStatus.setBrightness(0x0f);
+    dispTemp.setSegments(SEG_INIT);
+    dispFlow.setSegments(SEG_INIT);
+    dispStatus.setSegments(SEG_INIT);
 
-    // Determine temperature sensor address
+    tempSensorBad = !initTempSensor();
+    if (tempSensorBad)
+    {
+        dispTemp.setSegments(SEG_SENS);
+        dispFlow.setSegments(SEG_SENS);
+        dispStatus.setSegments(SEG_SENS);
+        while (1)
+            ;
+    }
+    
+    // Set up interrupt for flow measurement
+    
+    pinMode(FLOW, INPUT);
+    attachInterrupt(0, flow, RISING);
+    sei();
+    cloopTime = millis();
 
-    if (!ds.search(addr))
-    {
-#if SERIAL_DBG
-        Serial.println("No temperature sensor found");
-#endif
-        tempSensorBad = true;
-        return;
-    }
-    if (OneWire::crc8(addr, 7) != addr[7])
-    {
-#if SERIAL_DBG
-        Serial.println("Temperature sensor bad CRC");
-#endif
-        tempSensorBad = true;
-        return;
-    }
-    if (addr[0] != 0x28)
-    {
-#if SERIAL_DBG
-        Serial.println("Temperature sensor is not DS18B20");
-#endif
-        tempSensorBad = true;
-        return;
-    }
-#if SERIAL_DBG
-    Serial.print("Found temperature sensor at");
-    for (int i = 1; i < 7; i++)
-        Serial.print(addr[i], HEX);
-    Serial.println();
-#endif
+    uint8_t off[] = { 0, 0, 0, 0 };
+    dispTemp.setSegments(off);
+    dispFlow.setSegments(off);
+    dispStatus.setSegments(off);
 }
 
 void showNumberDecDot(TM1637Display& disp, int num, bool leading_zero, uint8_t length = 4, uint8_t pos = 0, int decimal_dot_place = 1)
@@ -193,6 +242,37 @@ void showNumberDecDot(TM1637Display& disp, int num, bool leading_zero, uint8_t l
     disp.setSegments(digits + (4 - length), length, pos);
 }
 
+double readTemp()
+{
+    ds.reset();
+    ds.select(addr);
+    ds.write(0x44, 1);         // start conversion, with parasite power on at the end
+
+    delay(1000);     // maybe 750ms is enough, maybe not
+
+    ds.reset();
+    ds.select(addr);    
+    ds.write(0xBE);         // Read Scratchpad
+
+    byte data[9];
+    for (int i = 0; i < 9; i++)
+    {
+        // Read 9 bytes
+        data[i] = ds.read();
+    }
+  
+    // temp holds temperature in degrees Celsisu times 100
+    int temp = (data[1] << 8) + data[0];
+    const int signBit = temp & 0x8000;
+    if (signBit) // negative
+    {
+        temp = (temp ^ 0xFFFF) + 1; // 2's comp
+    }
+    temp = 6*temp + temp/4;    // multiply by (100 * 0.0625) or 6.25
+
+    return temp/100.0;
+}
+
 volatile int flowFrequency = 0;  // Measures flow meter pulses
 
 // Interrupt function
@@ -228,37 +308,13 @@ void loop()
     //-- Read temperature
     //
 
-    ds.reset();
-    ds.select(addr);
-    ds.write(0x44, 1);         // start conversion, with parasite power on at the end
-
-    delay(1000);     // maybe 750ms is enough, maybe not
-
-    ds.reset();
-    ds.select(addr);    
-    ds.write(0xBE);         // Read Scratchpad
-
-    byte data[9];
-    for (int i = 0; i < 9; i++)
-    {
-        // Read 9 bytes
-        data[i] = ds.read();
-    }
-  
-    // temp holds temperature in degrees Celsisu times 100
-    int temp = (data[1] << 8) + data[0];
-    const int signBit = temp & 0x8000;
-    if (signBit) // negative
-    {
-        temp = (temp ^ 0xFFFF) + 1; // 2's comp
-    }
-    temp = 6*temp + temp/4;    // multiply by (100 * 0.0625) or 6.25
+    double temp = readTemp();
 
 #if SIMULATE
     temp = 6;
 #endif
 
-    showNumberDecDot(dispTemp, temp, false);
+    showNumberDecDot(dispTemp, static_cast<int>(temp*100), false);
 #if SERIAL_DBG
     Serial.print("Temp ");
     Serial.println(temp);
@@ -292,12 +348,12 @@ void loop()
     //
     //-- Switch compressor on/off
     //
-    if (temp < 100*LOW_TEMP)
+    if (temp < LOW_TEMP)
     {
         // Cool enough
         compressorOn = false;
     }
-    if (temp > 100*HIGH_TEMP)
+    if (temp > HIGH_TEMP)
     {
         // Too warm
         compressorOn = true;
@@ -307,8 +363,8 @@ void loop()
     Serial.println(compressorOn ? "on" : "off");
 #endif
 
-    isHot = (temp > 100*HOT_TEMP);
-    const bool isBogusTemp = (temp < 100*MIN_ACCEPTABLE_TEMP);
+    isHot = (temp > HOT_TEMP);
+    const bool isBogusTemp = (temp < MIN_ACCEPTABLE_TEMP);
     digitalWrite(LED, compressorOn);
     digitalWrite(COMPRESSOR, !compressorOn);
 
