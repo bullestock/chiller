@@ -2,7 +2,7 @@
 #include <OneWire.h>
 #include <TM1637Display.h>
 
-#define VERSION         5
+#define VERSION         6
 
 #define SERIAL_DBG      1
 #define SIMULATE        0
@@ -20,6 +20,7 @@
 #define COMPRESSOR  11
 #define STATUS      12
 #define LED         13
+#define BUZZER      3
 
 // High/low temperature for thermostat (degrees)
 #define LOW_TEMP    20
@@ -37,6 +38,9 @@
 
 // Number of temperature sensor readings to average
 #define TEMP_AVERAGES    5
+
+// Number of consecutive errors to trigger fault condition
+#define CONSECUTIVE_ERRORS    5
 
 // The amount of time (in milliseconds) between tests
 #define TEST_DELAY   30
@@ -189,7 +193,11 @@ void setup()
     dispFlow.setSegments(SEG_INIT);
     dispStatus.showNumberDec(VERSION);
 
+#if SIMULATE
+    tempSensorBad = false;
+#else
     tempSensorBad = !initTempSensor();
+#endif
     if (tempSensorBad)
     {
         dispTemp.setSegments(SEG_SENS);
@@ -255,6 +263,9 @@ void showNumberDecDot(TM1637Display& disp, int num, bool leading_zero, uint8_t l
 
 double readTemp()
 {
+#if SIMULATE
+    return 23.4;
+#endif
     ds.reset();
     ds.select(addr);
     ds.write(0x44, 1);         // start conversion, with parasite power on at the end
@@ -300,6 +311,13 @@ bool noFlow = false;
 int loopCount = 0;
 bool showTempError = false;
 
+int nofConsecutiveErrors = 0;
+int nofConsecutiveClears = 0;
+
+bool signalOK = false;
+
+bool isInitializing = true;
+
 void loop()
 {
 #if 0
@@ -320,10 +338,6 @@ void loop()
     //
 
     double temp = readTemp();
-
-#if SIMULATE
-    temp = 6;
-#endif
 
     // Shift
     for (int i = 0; i < TEMP_AVERAGES-1; ++i)
@@ -354,7 +368,7 @@ void loop()
         // Pulse frequency (Hz) = 7.5Q, Q is flow rate in L/min. (Results in +/- 3% range)
         unsigned int litersPerHour = (flowFrequency*60000.0/deltaTime / 7.5);
 #if SIMULATE
-        litersPerHour = 42;
+        litersPerHour = 77;
 #endif
         flowFrequency = 0;                   // Reset Counter
         dispFlow.showNumberDec(litersPerHour);
@@ -387,16 +401,59 @@ void loop()
 
     isHot = (temp > HOT_TEMP);
     const bool isBogusTemp = (temp < MIN_ACCEPTABLE_TEMP);
-    digitalWrite(LED, compressorOn);
+    //digitalWrite(LED, compressorOn);
     digitalWrite(COMPRESSOR, !compressorOn);
+
+    // Compute current status
+
+    const bool currentClearState = !isHot && !noFlow && !isBogusTemp && !tempSensorBad;
+    if (currentClearState)
+    {
+        // We are currently OK
+        ++nofConsecutiveClears;
+#if SERIAL_DBG
+        Serial.print("Clears: ");
+        Serial.println(nofConsecutiveClears);
+#endif
+        if (nofConsecutiveClears >= CONSECUTIVE_ERRORS)
+        {
+            // Clear error status
+            nofConsecutiveErrors = 0;
+            nofConsecutiveClears = 0;
+            signalOK = true;
+            isInitializing = false;
+#if SERIAL_DBG
+            Serial.println("Cleared error status");
+#endif
+        }
+    }
+    else
+    {
+        // We are currently in error state
+        ++nofConsecutiveErrors;
+#if SERIAL_DBG
+        Serial.print("Errors: ");
+        Serial.println(nofConsecutiveClears);
+#endif
+        if (nofConsecutiveErrors >= CONSECUTIVE_ERRORS)
+        {
+            // Set error status
+            nofConsecutiveClears = 0;
+            signalOK = false;
+#if SERIAL_DBG
+            Serial.println("Set error status");
+#endif
+        }
+    }
 
     // Signal status to Lasersaur
 
-    const bool status = !isHot && !noFlow && !isBogusTemp && !tempSensorBad;
-    digitalWrite(STATUS, status);
+    digitalWrite(STATUS, signalOK);
+    digitalWrite(LED, signalOK);
+    digitalWrite(BUZZER, isInitializing ? false : !signalOK);
 #if SERIAL_DBG
     Serial.print("Status ");
-    Serial.println(status ? "OK" : "ERROR");
+    Serial.println(signalOK ? "OK" : "ERROR");
 #endif
     
     //
