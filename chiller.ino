@@ -2,6 +2,8 @@
 #include <OneWire.h>
 #include <TM1637Display.h>
 
+#define VERSION         5
+
 #define SERIAL_DBG      1
 #define SIMULATE        0
 
@@ -33,6 +35,9 @@
 // Minimum flow (l/h)
 #define MIN_FLOW   50
 
+// Number of temperature sensor readings to average
+#define TEMP_AVERAGES    5
+
 // The amount of time (in milliseconds) between tests
 #define TEST_DELAY   30
 
@@ -42,6 +47,8 @@ TM1637Display dispStatus(CLK3, DIO3);
 OneWire ds(TEMP);
 
 unsigned long cloopTime;
+
+double tempReadings[TEMP_AVERAGES];
 
 const uint8_t SEG_OK[] =
 {
@@ -180,7 +187,7 @@ void setup()
     dispStatus.setBrightness(0x0f);
     dispTemp.setSegments(SEG_INIT);
     dispFlow.setSegments(SEG_INIT);
-    dispStatus.setSegments(SEG_INIT);
+    dispStatus.showNumberDec(VERSION);
 
     tempSensorBad = !initTempSensor();
     if (tempSensorBad)
@@ -191,6 +198,10 @@ void setup()
         while (1)
             ;
     }
+
+    // Get initial temperature readings
+    for (int i = 0; i < TEMP_AVERAGES; ++i)
+        tempReadings[i] = readTemp();
     
     // Set up interrupt for flow measurement
     
@@ -313,6 +324,17 @@ void loop()
 #if SIMULATE
     temp = 6;
 #endif
+
+    // Shift
+    for (int i = 0; i < TEMP_AVERAGES-1; ++i)
+        tempReadings[i] = tempReadings[i+1];
+    tempReadings[TEMP_AVERAGES-1] = temp;
+
+    // Calculate average
+    temp = 0;
+    for (int i = 0; i < TEMP_AVERAGES-1; ++i)
+        temp += tempReadings[i];
+    temp /= TEMP_AVERAGES;
 
     showNumberDecDot(dispTemp, static_cast<int>(temp*100), false);
 #if SERIAL_DBG
