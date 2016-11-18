@@ -2,7 +2,7 @@
 #include <OneWire.h>
 #include <TM1637Display.h>
 
-#define VERSION         6
+#define VERSION         7
 
 #define SERIAL_DBG      1
 #define SIMULATE        0
@@ -204,12 +204,19 @@ void setup()
         dispFlow.setSegments(SEG_SENS);
         dispStatus.setSegments(SEG_SENS);
         while (1)
-            ;
+        {
+            digitalWrite(BUZZER, true);
+            delay(1000);
+            digitalWrite(BUZZER, false);
+            delay(500);
+        }
     }
-
+    
     // Get initial temperature readings
+    digitalWrite(BUZZER, true);
     for (int i = 0; i < TEMP_AVERAGES; ++i)
         tempReadings[i] = readTemp();
+    digitalWrite(BUZZER, false);
     
     // Set up interrupt for flow measurement
     
