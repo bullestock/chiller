@@ -1,0 +1,301 @@
+EESchema Schematic File Version 2
+LIBS:power
+LIBS:device
+LIBS:transistors
+LIBS:conn
+LIBS:linear
+LIBS:regul
+LIBS:74xx
+LIBS:cmos4000
+LIBS:adc-dac
+LIBS:memory
+LIBS:xilinx
+LIBS:microcontrollers
+LIBS:dsp
+LIBS:microchip
+LIBS:analog_switches
+LIBS:motorola
+LIBS:texas
+LIBS:intel
+LIBS:audio
+LIBS:interface
+LIBS:digital-audio
+LIBS:philips
+LIBS:display
+LIBS:cypress
+LIBS:siliconi
+LIBS:opto
+LIBS:atmel
+LIBS:contrib
+LIBS:valves
+LIBS:tinkerforge
+LIBS:arduino
+LIBS:maxim
+LIBS:chiller-cache
+EELAYER 25 0
+EELAYER END
+$Descr A4 11693 8268
+encoding utf-8
+Sheet 1 1
+Title ""
+Date ""
+Rev ""
+Comp ""
+Comment1 ""
+Comment2 ""
+Comment3 ""
+Comment4 ""
+$EndDescr
+$Comp
+L LCD-20X4 U?
+U 1 1 582F6D65
+P 9100 2200
+F 0 "U?" H 9100 3100 60  0000 C CNN
+F 1 "LCD-20X4" H 9150 1350 60  0000 C CNN
+F 2 "" H 9100 2200 60  0000 C CNN
+F 3 "" H 9100 2200 60  0000 C CNN
+	1    9100 2200
+	1    0    0    -1  
+$EndComp
+$Comp
+L ARDUINO_PRO_MINI_5V IC?
+U 1 1 582F6DE8
+P 7500 2450
+F 0 "IC?" H 7950 3250 60  0000 C CNN
+F 1 "ARDUINO_PRO_MINI_5V" V 7500 2600 60  0000 C CNN
+F 2 "" H 7500 2450 60  0000 C CNN
+F 3 "" H 7500 2450 60  0000 C CNN
+	1    7500 2450
+	1    0    0    1   
+$EndComp
+Wire Wire Line
+	8300 2450 8950 2450
+Wire Wire Line
+	8950 2550 8300 2550
+Wire Wire Line
+	8300 2650 8950 2650
+Wire Wire Line
+	8950 2750 8300 2750
+$Comp
+L POT RV?
+U 1 1 582F6EA5
+P 8350 1100
+F 0 "RV?" H 8350 1020 50  0000 C CNN
+F 1 "POT" H 8350 1100 50  0000 C CNN
+F 2 "" H 8350 1100 50  0000 C CNN
+F 3 "" H 8350 1100 50  0000 C CNN
+	1    8350 1100
+	0    1    1    0   
+$EndComp
+Wire Wire Line
+	8500 1100 8700 1100
+Wire Wire Line
+	8700 1100 8700 1650
+Wire Wire Line
+	8700 1650 8950 1650
+$Comp
+L GND #PWR?
+U 1 1 582F6EE9
+P 8350 1350
+F 0 "#PWR?" H 8350 1100 50  0001 C CNN
+F 1 "GND" H 8350 1200 50  0000 C CNN
+F 2 "" H 8350 1350 50  0000 C CNN
+F 3 "" H 8350 1350 50  0000 C CNN
+	1    8350 1350
+	1    0    0    -1  
+$EndComp
+$Comp
+L +5V #PWR?
+U 1 1 582F6F03
+P 8350 850
+F 0 "#PWR?" H 8350 700 50  0001 C CNN
+F 1 "+5V" H 8350 990 50  0000 C CNN
+F 2 "" H 8350 850 50  0000 C CNN
+F 3 "" H 8350 850 50  0000 C CNN
+	1    8350 850 
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	8350 850  8350 950 
+Wire Wire Line
+	8350 1250 8350 1350
+Wire Wire Line
+	6150 900  8800 900 
+Wire Wire Line
+	8800 900  8800 2850
+Wire Wire Line
+	8800 1550 8950 1550
+Connection ~ 8350 900 
+Wire Wire Line
+	8350 1300 8900 1300
+Wire Wire Line
+	8900 1300 8900 1850
+Wire Wire Line
+	8900 1450 8950 1450
+Connection ~ 8350 1300
+Wire Wire Line
+	8950 1750 8550 1750
+Wire Wire Line
+	8550 1750 8550 2850
+Wire Wire Line
+	8550 2850 8300 2850
+Wire Wire Line
+	8300 2350 8650 2350
+Wire Wire Line
+	8650 2350 8650 1950
+Wire Wire Line
+	8650 1950 8950 1950
+Wire Wire Line
+	8900 1850 8950 1850
+Connection ~ 8900 1450
+NoConn ~ 8950 2050
+NoConn ~ 8950 2150
+NoConn ~ 8950 2250
+NoConn ~ 8950 2350
+Wire Wire Line
+	8800 2850 8950 2850
+Connection ~ 8800 1550
+$Comp
+L GND #PWR?
+U 1 1 582F70AB
+P 8800 3150
+F 0 "#PWR?" H 8800 2900 50  0001 C CNN
+F 1 "GND" H 8800 3000 50  0000 C CNN
+F 2 "" H 8800 3150 50  0000 C CNN
+F 3 "" H 8800 3150 50  0000 C CNN
+	1    8800 3150
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	8800 3150 8800 2950
+Wire Wire Line
+	8450 2950 8950 2950
+NoConn ~ 7250 1500
+NoConn ~ 7350 1500
+NoConn ~ 7450 1500
+NoConn ~ 7550 1500
+NoConn ~ 7650 1500
+NoConn ~ 7750 1500
+NoConn ~ 8300 2050
+NoConn ~ 8300 1950
+NoConn ~ 8300 1850
+Wire Wire Line
+	8300 2150 8450 2150
+Wire Wire Line
+	8450 2150 8450 2950
+Connection ~ 8800 2950
+Wire Wire Line
+	6150 900  6150 2150
+Wire Wire Line
+	6150 2150 6650 2150
+NoConn ~ 6650 2050
+NoConn ~ 6650 1850
+$Comp
+L GND #PWR?
+U 1 1 582F7183
+P 6300 1950
+F 0 "#PWR?" H 6300 1700 50  0001 C CNN
+F 1 "GND" H 6300 1800 50  0000 C CNN
+F 2 "" H 6300 1950 50  0000 C CNN
+F 3 "" H 6300 1950 50  0000 C CNN
+	1    6300 1950
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	6300 1950 6650 1950
+$Comp
+L DS18B20 U?
+U 1 1 582F7247
+P 4800 2350
+F 0 "U?" H 4650 2600 50  0000 C CNN
+F 1 "DS18B20" H 4800 2100 50  0000 C CNN
+F 2 "" H 4650 2600 50  0000 C CNN
+F 3 "" H 4650 2600 50  0000 C CNN
+	1    4800 2350
+	-1   0    0    -1  
+$EndComp
+$Comp
+L DS18B20 U?
+U 1 1 582F72D9
+P 4800 3050
+F 0 "U?" H 4650 3300 50  0000 C CNN
+F 1 "DS18B20" H 4800 2800 50  0000 C CNN
+F 2 "" H 4650 3300 50  0000 C CNN
+F 3 "" H 4650 3300 50  0000 C CNN
+	1    4800 3050
+	-1   0    0    -1  
+$EndComp
+$Comp
+L GND #PWR?
+U 1 1 582F736C
+P 5200 4100
+F 0 "#PWR?" H 5200 3850 50  0001 C CNN
+F 1 "GND" H 5200 3950 50  0000 C CNN
+F 2 "" H 5200 4100 50  0000 C CNN
+F 3 "" H 5200 4100 50  0000 C CNN
+	1    5200 4100
+	1    0    0    -1  
+$EndComp
+$Comp
+L +5V #PWR?
+U 1 1 582F738A
+P 5400 2150
+F 0 "#PWR?" H 5400 2000 50  0001 C CNN
+F 1 "+5V" H 5400 2290 50  0000 C CNN
+F 2 "" H 5400 2150 50  0000 C CNN
+F 3 "" H 5400 2150 50  0000 C CNN
+	1    5400 2150
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	5400 2150 5400 3700
+Wire Wire Line
+	5400 2950 5100 2950
+Wire Wire Line
+	5100 2250 5400 2250
+Connection ~ 5400 2250
+Wire Wire Line
+	5100 2450 5200 2450
+Wire Wire Line
+	5200 2450 5200 4100
+Wire Wire Line
+	5100 3150 5200 3150
+Connection ~ 5200 3150
+$Comp
+L DS18B20 U?
+U 1 1 582F7464
+P 4800 3800
+F 0 "U?" H 4650 4050 50  0000 C CNN
+F 1 "FLOW SENSOR" H 4800 3550 50  0000 C CNN
+F 2 "" H 4650 4050 50  0000 C CNN
+F 3 "" H 4650 4050 50  0000 C CNN
+	1    4800 3800
+	-1   0    0    -1  
+$EndComp
+Wire Wire Line
+	5100 3900 5200 3900
+Connection ~ 5200 3900
+Wire Wire Line
+	5400 3700 5100 3700
+Connection ~ 5400 2950
+Wire Wire Line
+	5100 3800 8350 3800
+Wire Wire Line
+	8350 3800 8350 2250
+Wire Wire Line
+	8350 2250 8300 2250
+Wire Wire Line
+	8300 2950 8300 3700
+Wire Wire Line
+	8300 3700 5550 3700
+Wire Wire Line
+	5550 3700 5550 3050
+Wire Wire Line
+	5550 3050 5100 3050
+Wire Wire Line
+	6650 2950 5550 2950
+Wire Wire Line
+	5550 2950 5550 2350
+Wire Wire Line
+	5550 2350 5100 2350
+$EndSCHEMATC
