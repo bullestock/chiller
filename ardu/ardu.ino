@@ -57,7 +57,16 @@ void fatal_error(const char* msg)
     lcd.setCursor((20-strlen(msg))/2, 1);
     lcd.print(msg);
     while (1)
-        ;
+    {
+        digitalWrite(BUZZER_PIN, 1);
+        delay(40);
+        digitalWrite(BUZZER_PIN, 0);
+        delay(80);
+        digitalWrite(BUZZER_PIN, 1);
+        delay(160);
+        digitalWrite(BUZZER_PIN, 0);
+        delay(320);
+    }
 }
 
 void fatal_error(const String& s)
