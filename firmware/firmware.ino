@@ -58,9 +58,8 @@ byte degrees[8] =
 
 String format_temp(int temp)
 {
-    char buf[9];
-    // Custom character 1 is a degrees symbol
-    sprintf(buf, "%3d.%d %cC", temp/100, ((temp % 100)+5)/10, 1);
+    char buf[20];
+    sprintf(buf, "%3d.%d", temp/100, ((temp % 100)+5)/10);
     return buf;
 }
 
@@ -191,14 +190,14 @@ void flow_interrupt()
 
 unsigned long last_flow_time;
 
-double temp_readings[2][TEMP_AVERAGES];
+int temp_readings[2][TEMP_AVERAGES];
 
 void setup() 
 {
     Serial.begin(57600);
     Serial.println("Chiller v2");
     
-    lcd.createChar(1, degrees);
+    lcd.createChar('\r', degrees);
     lcd.begin(20, 4);
     lcd.setCursor(4, 1);
     lcd.print(F("Initializing"));
@@ -243,6 +242,14 @@ void setup()
     last_flow_time = millis();
 
     lcd.clear();
+
+    lcd.setCursor(0, 0);
+    // Custom character 13 is a degrees symbol
+    lcd.print(F("Temp 1           \rC"));
+    lcd.setCursor(0, 1);
+    lcd.print(F("Temp 2           \rC"));
+    lcd.setCursor(0, 2);
+    lcd.print(F("Flow             l/m"));
 }
 
 int add_temp_reading(int index, int temp)
@@ -260,22 +267,25 @@ int add_temp_reading(int index, int temp)
 }
 
 unsigned int litersPerHour = 0;
-bool noFlow = false;
+bool compressor_on = false;
+bool signal_ok = false;
+int nof_consecutive_errors = 0;
+int nof_consecutive_clears = 0;
 
 void loop() 
 {
     //
     //-- Read and display temperatures
     //
-    
+
+    int temps[2];
     for (int j = 0; j < 2; ++j)
     {
         int temp = read_temp(j);
         temp = add_temp_reading(j, temp);
-        lcd.setCursor(0, j);
-        lcd.print(F("Temp "));
-        lcd.print(j+1);
+        lcd.setCursor(5, j);
         print_temp(j, temp);
+        temps[j] = temp;
     }
     
     //
@@ -290,52 +300,79 @@ void loop()
         // Pulse frequency (Hz) = 7.5Q, Q is flow rate in L/min. (Results in +/- 3% range)
         litersPerHour = (flowFrequency*60000.0/deltaTime / 7.5);
         flowFrequency = 0;                   // Reset Counter
-
-        //-- Check flow
-        noFlow = (litersPerHour < MIN_FLOW);
     }
 
-    lcd.setCursor(0, 2);
-    lcd.print(F("Flow"));
     lcd.setCursor(13, 2);
-    lcd.print(F("     "));
-    lcd.setCursor(13, 2);
-    char buf[5];
+    char buf[20];
     sprintf(buf, "%3d", litersPerHour);
     lcd.print(buf);
-    lcd.print(F(" l/m"));
 
     //
     //-- Do checks
     //
 
-    
-    String state;
-    switch (random(0, 5))
+    const auto low_flow = (litersPerHour < MIN_FLOW);
+
+    if (temps[0] < LOW_TEMP*TEMP_SCALE_FACTOR)
     {
-    case 0:
-        state = "Idle";
-        break;
-    case 1:
-        state = "Cooling";
-        break;
-    case 2:
-        state = "Sensor error";
-        break;
-    case 3:
-        state = "Flow too low";
-        break;
-    case 4:
-        state = "Too hot";
-        break;
+        // Cool enough
+        compressor_on = false;
     }
-    lcd.setCursor(0, 3);
-    lcd.print(F("                    "));
+    else if (temps[0] > HIGH_TEMP*TEMP_SCALE_FACTOR)
+    {
+        // Too warm
+        compressor_on = true;
+    }
+    digitalWrite(COMPRESSOR_PIN, compressor_on);
+    
+    const auto is_hot = (temps[0] > HOT_TEMP*TEMP_SCALE_FACTOR);
+
+    const bool currentClearState = !is_hot && !low_flow;
+    if (currentClearState)
+    {
+        // We are currently OK
+        ++nof_consecutive_clears;
+        if (nof_consecutive_clears >= CONSECUTIVE_ERRORS)
+        {
+            // Clear error status
+            nof_consecutive_errors = 0;
+            nof_consecutive_clears = 0;
+            signal_ok = true;
+        }
+    }
+    else
+    {
+        // We are currently in error state
+        ++nof_consecutive_errors;
+        if (nof_consecutive_errors >= CONSECUTIVE_ERRORS)
+        {
+            // Set error status
+            nof_consecutive_clears = 0;
+            signal_ok = false;
+        }
+    }
+
+    // Signal status to Lasersaur
+
+    digitalWrite(RELAY_PIN, signal_ok);
+    //!!digitalWrite(BUZZER_PIN, !signal_ok);
+    
+    String state = "Idle";
+    if (compressor_on)
+        state = "Cooling";
+    if (low_flow)
+        state = "Flow too low";
+    if (is_hot)
+    {
+        if (low_flow)
+            state = "Too hot, low flow";
+        else
+            state = "Too hot";
+    }
+    while (state.length() < 20)
+        state += " ";
     lcd.setCursor(0, 3);
     lcd.print(state);
 
-    digitalWrite(RELAY_PIN, random(0, 2));
-    digitalWrite(COMPRESSOR_PIN, random(0, 2));
-
-    delay(5000);
+    delay(1000);
 }
