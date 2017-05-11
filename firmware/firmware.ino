@@ -245,14 +245,33 @@ void setup()
     lcd.clear();
 }
 
+int add_temp_reading(int index, int temp)
+{
+    int sum = 0;
+    for (int i = 1; i < TEMP_AVERAGES; ++i)
+    {
+        const auto t = temp_readings[index][i];
+        sum += t;
+        temp_readings[index][i-1] = t;
+    }
+    temp_readings[index][TEMP_AVERAGES-1] = temp;
+    sum += temp;
+    return sum/TEMP_AVERAGES;
+}
+
 unsigned int litersPerHour = 0;
 bool noFlow = false;
 
 void loop() 
 {
+    //
+    //-- Read and display temperatures
+    //
+    
     for (int j = 0; j < 2; ++j)
     {
         int temp = read_temp(j);
+        temp = add_temp_reading(j, temp);
         lcd.setCursor(0, j);
         lcd.print(F("Temp "));
         lcd.print(j+1);
@@ -260,7 +279,7 @@ void loop()
     }
     
     //
-    //-- Read flow (updated every second)
+    //-- Display flow (once every second)
     //
     
     const unsigned long currentTime = millis();
@@ -286,6 +305,11 @@ void loop()
     lcd.print(buf);
     lcd.print(F(" l/m"));
 
+    //
+    //-- Do checks
+    //
+
+    
     String state;
     switch (random(0, 5))
     {
