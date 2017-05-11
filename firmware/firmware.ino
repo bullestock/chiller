@@ -245,6 +245,9 @@ void setup()
     lcd.clear();
 }
 
+unsigned int litersPerHour = 0;
+bool noFlow = false;
+
 void loop() 
 {
     for (int j = 0; j < 2; ++j)
@@ -256,14 +259,30 @@ void loop()
         print_temp(j, temp);
     }
     
-    int flow = random(0, 150);
+    //
+    //-- Read flow (updated every second)
+    //
+    
+    const unsigned long currentTime = millis();
+    if (currentTime >= (last_flow_time + 1000))
+    {
+        const unsigned long deltaTime = currentTime - last_flow_time;
+        last_flow_time = currentTime;
+        // Pulse frequency (Hz) = 7.5Q, Q is flow rate in L/min. (Results in +/- 3% range)
+        litersPerHour = (flowFrequency*60000.0/deltaTime / 7.5);
+        flowFrequency = 0;                   // Reset Counter
+
+        //-- Check flow
+        noFlow = (litersPerHour < MIN_FLOW);
+    }
+
     lcd.setCursor(0, 2);
     lcd.print(F("Flow"));
     lcd.setCursor(13, 2);
     lcd.print(F("     "));
     lcd.setCursor(13, 2);
     char buf[5];
-    sprintf(buf, "%3d", flow);
+    sprintf(buf, "%3d", litersPerHour);
     lcd.print(buf);
     lcd.print(F(" l/m"));
 
