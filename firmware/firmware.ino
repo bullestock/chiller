@@ -254,9 +254,9 @@ void setup()
 
     lcd.setCursor(0, 0);
     // Custom character 13 is a degrees symbol
-    lcd.print(F("Temp 1           \rC"));
+    lcd.print(F("Water temp       \rC"));
     lcd.setCursor(0, 1);
-    lcd.print(F("Temp 2           \rC"));
+    lcd.print(F("Compr. temp      \rC"));
     lcd.setCursor(0, 2);
     lcd.print(F("Flow             l/m"));
 }
