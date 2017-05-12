@@ -5,12 +5,19 @@
 #define USE_BUZZER  1
 #define SERIAL_DBG  1
 
-const int RELAY_PIN = 12;
 const int FLOW_SENSOR_PIN = 2;  // Must have interrupt support
+const int DISPLAY_PIN_1 = 8;
+const int DISPLAY_PIN_2 = 3;
+const int DISPLAY_PIN_3 = 4;
+const int DISPLAY_PIN_4 = 5;
+const int DISPLAY_PIN_5 = 6;
+const int DISPLAY_PIN_6 = 7;
 const int TEMP_SENSOR_1_PIN = 10;
 const int TEMP_SENSOR_2_PIN = 9;
 const int BUZZER_PIN = A0;
 const int COMPRESSOR_PIN = 11;
+const int RELAY_PIN = 12;
+const int FAN_PIN = A1;
 
 // High/low temperature for thermostat (degrees)
 const int LOW_TEMP = 20;
@@ -34,7 +41,8 @@ const int TEMP_AVERAGES = 5;
 // Number of consecutive errors to trigger fault condition
 const int CONSECUTIVE_ERRORS = 5;
 
-LiquidCrystal lcd(8, 3, 4, 5, 6, 7);
+LiquidCrystal lcd(DISPLAY_PIN_1, DISPLAY_PIN_2, DISPLAY_PIN_3,
+                  DISPLAY_PIN_4, DISPLAY_PIN_5, DISPLAY_PIN_6);
 
 OneWire temp1(TEMP_SENSOR_1_PIN);
 OneWire temp2(TEMP_SENSOR_2_PIN);
@@ -208,6 +216,7 @@ void setup()
     pinMode(TEMP_SENSOR_2_PIN, INPUT);
     pinMode(BUZZER_PIN, OUTPUT);
     pinMode(COMPRESSOR_PIN, OUTPUT);
+    pinMode(FAN_PIN, OUTPUT);
 
     lcd.setCursor(2, 2);
     lcd.print(F("(temp sensor 1)"));
@@ -324,6 +333,8 @@ void loop()
         compressor_on = true;
     }
     digitalWrite(COMPRESSOR_PIN, compressor_on);
+    // TODO: Keep fan on for a while after switching compressor off
+    digitalWrite(FAN_PIN, compressor_on);
     
     const auto is_hot = (temps[0] > HOT_TEMP*TEMP_SCALE_FACTOR);
 
