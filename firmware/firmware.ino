@@ -67,7 +67,9 @@ byte degrees[8] =
 String format_temp(int temp)
 {
     char buf[20];
-    sprintf(buf, "%3d.%d", temp/100, ((temp % 100)+5)/10);
+    // Round to single decimal
+    temp = ((temp+5)/10)*10;
+    sprintf(buf, "%3d.%d", temp/100, (temp % 100)/10);
     return buf;
 }
 
