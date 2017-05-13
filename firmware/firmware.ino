@@ -5,6 +5,8 @@
 #define USE_BUZZER  1
 #define SERIAL_DBG  1
 
+const char* VERSION = "1.0.0";
+
 const int FLOW_SENSOR_PIN = 2;  // Must have interrupt support
 const int DISPLAY_PIN_1 = 8;
 const int DISPLAY_PIN_2 = 3;
@@ -209,6 +211,9 @@ void setup()
     
     lcd.createChar('\r', degrees);
     lcd.begin(20, 4);
+    lcd.setCursor(3, 0);
+    lcd.print(F("Version "));
+    lcd.print(VERSION);
     lcd.setCursor(4, 1);
     lcd.print(F("Initializing"));
 
