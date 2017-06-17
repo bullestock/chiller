@@ -5,7 +5,7 @@
 #define USE_BUZZER  1
 #define SERIAL_DBG  1
 
-const char* VERSION = "1.0.0";
+const char* VERSION = "1.0.1";
 
 const int FLOW_SENSOR_PIN = 2;  // Must have interrupt support
 const int DISPLAY_PIN_1 = 8;
@@ -42,6 +42,9 @@ const int TEMP_AVERAGES = 5;
 
 // Number of consecutive errors to trigger fault condition
 const int CONSECUTIVE_ERRORS = 5;
+
+// Number of milliseconds to keep fan on after turning compressor off
+const unsigned long FAN_DELAY = 5*60*1000;
 
 LiquidCrystal lcd(DISPLAY_PIN_1, DISPLAY_PIN_2, DISPLAY_PIN_3,
                   DISPLAY_PIN_4, DISPLAY_PIN_5, DISPLAY_PIN_6);
@@ -287,6 +290,8 @@ bool compressor_on = false;
 bool signal_ok = false;
 int nof_consecutive_errors = 0;
 int nof_consecutive_clears = 0;
+unsigned long compressor_off_millis = 0;
+bool waiting_to_turn_fan_off = false;
 
 void loop() 
 {
@@ -333,16 +338,28 @@ void loop()
     {
         // Cool enough
         compressor_on = false;
+        compressor_off_millis = millis();
+        waiting_to_turn_fan_off = true;
     }
     else if (temps[0] > HIGH_TEMP*TEMP_SCALE_FACTOR)
     {
         // Too warm
         compressor_on = true;
+        waiting_to_turn_fan_off = false;
     }
     digitalWrite(COMPRESSOR_PIN, compressor_on);
-    // TODO: Keep fan on for a while after switching compressor off
-    digitalWrite(FAN_PIN, compressor_on);
-    
+    if (compressor_on)
+        digitalWrite(FAN_PIN, true);
+    // Keep fan on for a while after switching compressor off
+    else if (waiting_to_turn_fan_off)
+    {
+        const auto m = millis();
+        if ((m - compressor_off_millis) > FAN_DELAY)
+        {
+            waiting_to_turn_fan_off = false;
+            digitalWrite(FAN_PIN, false);
+        }
+    }
     const auto is_hot = (temps[0] > HOT_TEMP*TEMP_SCALE_FACTOR);
 
     const bool currentClearState = !is_hot && !low_flow;
