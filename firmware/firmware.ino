@@ -5,7 +5,7 @@
 #define USE_BUZZER  1
 #define SERIAL_DBG  1
 
-const char* VERSION = "1.0.1";
+const char* VERSION = "1.0.2";
 
 const int FLOW_SENSOR_PIN = 2;  // Must have interrupt support
 const int DISPLAY_PIN_1 = 8;
@@ -23,10 +23,13 @@ const int FAN_PIN = A1;
 
 // High/low temperature for thermostat (degrees)
 const int LOW_TEMP = 20;
-const int HIGH_TEMP = 25;
+const int HIGH_TEMP = 22;
+
+// Warn above this temperature
+const int WARN_TEMP = 30;
 
 // Halt operation above this temperature
-const int HOT_TEMP = 30;
+const int HOT_TEMP = 35;
 
 // Halt operation if sensor reports less than this temperature
 const int MIN_ACCEPTABLE_TEMP = 10;
@@ -44,7 +47,7 @@ const int TEMP_AVERAGES = 5;
 const int CONSECUTIVE_ERRORS = 5;
 
 // Number of milliseconds to keep fan on after turning compressor off
-const unsigned long FAN_DELAY = 5*60*1000;
+const unsigned long FAN_DELAY = 5*60*1000L;
 
 LiquidCrystal lcd(DISPLAY_PIN_1, DISPLAY_PIN_2, DISPLAY_PIN_3,
                   DISPLAY_PIN_4, DISPLAY_PIN_5, DISPLAY_PIN_6);
@@ -292,6 +295,7 @@ int nof_consecutive_errors = 0;
 int nof_consecutive_clears = 0;
 unsigned long compressor_off_millis = 0;
 bool waiting_to_turn_fan_off = false;
+bool beep_state = false;
 
 void loop() 
 {
@@ -390,8 +394,7 @@ void loop()
     // Signal status to Lasersaur
 
     digitalWrite(RELAY_PIN, signal_ok);
-    //!!digitalWrite(BUZZER_PIN, !signal_ok);
-    
+
     String state = "Idle";
     if (compressor_on)
         state = "Cooling";
@@ -404,6 +407,19 @@ void loop()
         else
             state = "Too hot";
     }
+    if (!signal_ok)
+    {
+        digitalWrite(BUZZER_PIN, 1);
+    }
+    else if (temps[0] >= WARN_TEMP*TEMP_SCALE_FACTOR)
+    {
+        digitalWrite(BUZZER_PIN, beep_state);
+        beep_state = !beep_state;
+        state = "Getting hot!";
+    }
+    else
+        digitalWrite(BUZZER_PIN, 0);
+
     while (state.length() < 20)
         state += " ";
     lcd.setCursor(0, 3);
