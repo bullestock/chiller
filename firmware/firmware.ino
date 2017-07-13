@@ -23,13 +23,16 @@ const int FAN_PIN = A1;
 
 // High/low temperature for thermostat (degrees)
 const int LOW_TEMP = 20;
-const int HIGH_TEMP = 22;
+const int HIGH_TEMP = 25;
 
 // Warn above this temperature
 const int WARN_TEMP = 30;
 
 // Halt operation above this temperature
 const int HOT_TEMP = 35;
+
+// Turn fan on if compressor is above this temperature
+const int COMPRESSOR_FAN_TEMP = 30;
 
 // Halt operation if sensor reports less than this temperature
 const int MIN_ACCEPTABLE_TEMP = 10;
@@ -45,9 +48,6 @@ const int TEMP_AVERAGES = 5;
 
 // Number of consecutive errors to trigger fault condition
 const int CONSECUTIVE_ERRORS = 5;
-
-// Number of milliseconds to keep fan on after turning compressor off
-const unsigned long FAN_DELAY = 5*60*1000L;
 
 LiquidCrystal lcd(DISPLAY_PIN_1, DISPLAY_PIN_2, DISPLAY_PIN_3,
                   DISPLAY_PIN_4, DISPLAY_PIN_5, DISPLAY_PIN_6);
@@ -293,8 +293,6 @@ bool compressor_on = false;
 bool signal_ok = false;
 int nof_consecutive_errors = 0;
 int nof_consecutive_clears = 0;
-unsigned long compressor_off_millis = 0;
-bool waiting_to_turn_fan_off = false;
 bool beep_state = false;
 
 void loop() 
@@ -342,28 +340,22 @@ void loop()
     {
         // Cool enough
         compressor_on = false;
-        compressor_off_millis = millis();
-        waiting_to_turn_fan_off = true;
     }
     else if (temps[0] > HIGH_TEMP*TEMP_SCALE_FACTOR)
     {
         // Too warm
         compressor_on = true;
-        waiting_to_turn_fan_off = false;
     }
     digitalWrite(COMPRESSOR_PIN, compressor_on);
+    bool fan_on = false;
     if (compressor_on)
-        digitalWrite(FAN_PIN, true);
-    // Keep fan on for a while after switching compressor off
-    else if (waiting_to_turn_fan_off)
-    {
-        const auto m = millis();
-        if ((m - compressor_off_millis) > FAN_DELAY)
-        {
-            waiting_to_turn_fan_off = false;
-            digitalWrite(FAN_PIN, false);
-        }
-    }
+        fan_on = true;
+    // Keep fan on while compressor is hot
+    else if (temps[1] > COMPRESSOR_FAN_TEMP*TEMP_SCALE_FACTOR)
+        fan_on = true;
+    else
+        fan_on = false;
+    digitalWrite(FAN_PIN, fan_on);
     const auto is_hot = (temps[0] > HOT_TEMP*TEMP_SCALE_FACTOR);
 
     const bool currentClearState = !is_hot && !low_flow;
@@ -396,6 +388,8 @@ void loop()
     digitalWrite(RELAY_PIN, signal_ok);
 
     String state = "Idle";
+    if (fan_on)
+        state = "Fan on";
     if (compressor_on)
         state = "Cooling";
     if (low_flow)
