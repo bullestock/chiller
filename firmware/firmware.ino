@@ -5,7 +5,7 @@
 #define USE_BUZZER  1
 #define SERIAL_DBG  1
 
-const char* VERSION = "1.0.2";
+const char* VERSION = "1.0.3";
 
 const int FLOW_SENSOR_PIN = 2;  // Must have interrupt support
 const int DISPLAY_PIN_1 = 8;
@@ -26,17 +26,20 @@ const int LOW_TEMP = 20;
 const int HIGH_TEMP = 25;
 
 // Warn above this temperature
-const int WARN_TEMP = 30;
+const int WATER_WARN_TEMP = 30;
+const int COMPRESSOR_WARN_TEMP = 60;
 
 // Halt operation above this temperature
-const int HOT_TEMP = 35;
+const int WATER_HOT_TEMP = 35;
+const int COMPRESSOR_HOT_TEMP = 70;
 
 // Turn fan on if compressor is above this temperature
 const int COMPRESSOR_FAN_TEMP = 30;
 
 // Halt operation if sensor reports less than this temperature
 const int MIN_ACCEPTABLE_TEMP = 10;
-const int MAX_ACCEPTABLE_TEMP = 50;
+// Halt operation if sensor reports more than this temperature
+const int MAX_ACCEPTABLE_TEMP = 100;
 // Sensor reports temperature in hundredths of degrees Celsius
 const int TEMP_SCALE_FACTOR = 100;
 
@@ -356,7 +359,8 @@ void loop()
     else
         fan_on = false;
     digitalWrite(FAN_PIN, fan_on);
-    const auto is_hot = (temps[0] > HOT_TEMP*TEMP_SCALE_FACTOR);
+    const auto is_hot = (temps[0] > WATER_HOT_TEMP*TEMP_SCALE_FACTOR) ||
+       (temps[1] > COMPRESSOR_HOT_TEMP*TEMP_SCALE_FACTOR);
 
     const bool currentClearState = !is_hot && !low_flow;
     if (currentClearState)
@@ -405,11 +409,17 @@ void loop()
     {
         digitalWrite(BUZZER_PIN, 1);
     }
-    else if (temps[0] >= WARN_TEMP*TEMP_SCALE_FACTOR)
+    else if (temps[0] >= WATER_WARN_TEMP*TEMP_SCALE_FACTOR)
     {
         digitalWrite(BUZZER_PIN, beep_state);
         beep_state = !beep_state;
-        state = "Getting hot!";
+        state = "Water hot!";
+    }
+    else if (temps[1] >= COMPRESSOR_WARN_TEMP*TEMP_SCALE_FACTOR)
+    {
+        digitalWrite(BUZZER_PIN, beep_state);
+        beep_state = !beep_state;
+        state = "Water hot!";
     }
     else
         digitalWrite(BUZZER_PIN, 0);
