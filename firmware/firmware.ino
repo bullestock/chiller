@@ -5,7 +5,7 @@
 #define USE_BUZZER  1
 #define SERIAL_DBG  1
 
-const char* VERSION = "1.0.3";
+const char* VERSION = "1.0.4";
 
 const int FLOW_SENSOR_PIN = 2;  // Must have interrupt support
 const int DISPLAY_PIN_1 = 8;
@@ -33,8 +33,9 @@ const int COMPRESSOR_WARN_TEMP = 60;
 const int WATER_HOT_TEMP = 35;
 const int COMPRESSOR_HOT_TEMP = 70;
 
-// Turn fan on if compressor is above this temperature
-const int COMPRESSOR_FAN_TEMP = 30;
+// High/low temperature for fan control
+const int COMPRESSOR_FAN_LOW_TEMP = 28;
+const int COMPRESSOR_FAN_HIGH_TEMP = 30;
 
 // Halt operation if sensor reports less than this temperature
 const int MIN_ACCEPTABLE_TEMP = 10;
@@ -354,9 +355,9 @@ void loop()
     if (compressor_on)
         fan_on = true;
     // Keep fan on while compressor is hot
-    else if (temps[1] > COMPRESSOR_FAN_TEMP*TEMP_SCALE_FACTOR)
+    else if (temps[1] > COMPRESSOR_FAN_HIGH_TEMP*TEMP_SCALE_FACTOR)
         fan_on = true;
-    else
+    else if (temps[1] < COMPRESSOR_FAN_LOW_TEMP*TEMP_SCALE_FACTOR)
         fan_on = false;
     digitalWrite(FAN_PIN, fan_on);
     const auto is_hot = (temps[0] > WATER_HOT_TEMP*TEMP_SCALE_FACTOR) ||
