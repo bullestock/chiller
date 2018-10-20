@@ -381,7 +381,7 @@ Wire Wire Line
 Wire Wire Line
 	8000 4800 8000 4700
 Text Notes 9350 4500 0    60   ~ 0
-LASERSAUR
+Ready
 $Comp
 L chiller-rescue:R R1
 U 1 1 58D2F17F
