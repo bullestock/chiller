@@ -216,8 +216,9 @@ int temp_readings[2][TEMP_AVERAGES];
 
 void setup() 
 {
-    Serial.begin(57600);
-    Serial.println("Chiller v2");
+    Serial.begin(115200);
+    Serial.print("Chiller v");
+    Serial.println(VERSION);
     
     lcd.createChar('\r', degrees);
     lcd.begin(20, 4);
@@ -271,9 +272,9 @@ void setup()
 
     lcd.setCursor(0, 0);
     // Custom character 13 is a degrees symbol
-    lcd.print(F("Water temp       \rC"));
+    lcd.print(F("Water            \rC"));
     lcd.setCursor(0, 1);
-    lcd.print(F("Compr. temp      \rC"));
+    lcd.print(F("Compressor       \rC"));
     lcd.setCursor(0, 2);
     lcd.print(F("Flow             l/m"));
 }
