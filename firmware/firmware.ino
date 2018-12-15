@@ -241,14 +241,6 @@ void setup()
     if (!init_temp_sensor(0))
         fatal_error("SENSOR ERROR:");
 
-    for (int i = 0; i < TEMP_AVERAGES; ++i)
-    {
-        digitalWrite(BUZZER_PIN, true);
-        delay(10);
-        digitalWrite(BUZZER_PIN, false);
-        temp_readings[0][i] = read_temp(0);
-    }
-
     lcd.setCursor(15, 2);
     lcd.print(F("2"));
     if (!init_temp_sensor(1))
@@ -258,6 +250,7 @@ void setup()
         digitalWrite(BUZZER_PIN, true);
         delay(15);
         digitalWrite(BUZZER_PIN, false);
+        temp_readings[0][i] = read_temp(0);
         temp_readings[1][i] = read_temp(1);
     }
     digitalWrite(BUZZER_PIN, false);
@@ -431,5 +424,10 @@ void loop()
     lcd.setCursor(0, 3);
     lcd.print(state);
 
+#if SERIAL_DBG
+    Serial.print("State: ");
+    Serial.println(state);
+#endif
+    
     delay(1000);
 }
