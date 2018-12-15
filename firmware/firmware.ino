@@ -5,7 +5,7 @@
 #define USE_BUZZER  1
 #define SERIAL_DBG  1
 
-const char* VERSION = "1.0.4";
+const char* VERSION = "1.1.0";
 
 const int FLOW_SENSOR_PIN = 2;  // Must have interrupt support
 const int DISPLAY_PIN_1 = 8;
@@ -292,6 +292,7 @@ bool signal_ok = false;
 int nof_consecutive_errors = 0;
 int nof_consecutive_clears = 0;
 bool beep_state = false;
+bool first = true;
 
 void loop() 
 {
@@ -314,13 +315,18 @@ void loop()
     //
     
     const unsigned long currentTime = millis();
-    if (currentTime >= (last_flow_time + 1000))
+    if (first || (currentTime >= (last_flow_time + 1000)))
     {
         const unsigned long deltaTime = currentTime - last_flow_time;
         last_flow_time = currentTime;
         // Pulse frequency (Hz) = 7.5Q, Q is flow rate in L/min. (Results in +/- 3% range)
         litersPerHour = (flowFrequency*60000.0/deltaTime / 7.5);
+#if SERIAL_DBG
+        Serial.print("Flow: ");
+        Serial.println(litersPerHour);
+#endif
         flowFrequency = 0;                   // Reset Counter
+        first = false;
     }
 
     lcd.setCursor(13, 2);
