@@ -1,11 +1,11 @@
 EESchema-LIBRARY Version 2.4
 #encoding utf-8
 #
-# Diode:BAT54C
+# Diode_BAT54C
 #
-DEF Diode:BAT54C D 0 40 Y Y 1 F N
+DEF Diode_BAT54C D 0 40 Y Y 1 F N
 F0 "D" 25 -150 50 H V L CNN
-F1 "Diode:BAT54C" -250 125 50 H V L CNN
+F1 "Diode_BAT54C" -250 125 50 H V L CNN
 F2 "Package_TO_SOT_SMD:SOT-23" 75 125 50 H I L CNN
 F3 "" -80 0 50 H I C CNN
 $FPLIST
@@ -33,11 +33,11 @@ X ~ 3 0 -200 200 U 50 50 1 1 P
 ENDDRAW
 ENDDEF
 #
-# MCU_Module:Arduino_Nano_v3.x
+# MCU_Module_Arduino_Nano_v3.x
 #
-DEF MCU_Module:Arduino_Nano_v3.x A 0 40 Y Y 1 F N
+DEF MCU_Module_Arduino_Nano_v3.x A 0 40 Y Y 1 F N
 F0 "A" -200 1025 50 H V R CNN
-F1 "MCU_Module:Arduino_Nano_v3.x" -200 950 50 H V R CNN
+F1 "MCU_Module_Arduino_Nano_v3.x" -200 950 50 H V R CNN
 F2 "Module:Arduino_Nano" 150 -950 50 H I L CNN
 F3 "" 0 -1000 50 H I C CNN
 ALIAS Arduino_Nano_v2.x
@@ -79,11 +79,11 @@ X D6 9 -500 0 100 R 50 50 1 1 B
 ENDDRAW
 ENDDEF
 #
-# Transistor_FET:BSP129
+# Transistor_FET_BSP129
 #
-DEF Transistor_FET:BSP129 Q 0 0 Y N 1 F N
+DEF Transistor_FET_BSP129 Q 0 0 Y N 1 F N
 F0 "Q" 200 75 50 H V L CNN
-F1 "Transistor_FET:BSP129" 200 0 50 H V L CNN
+F1 "Transistor_FET_BSP129" 200 0 50 H V L CNN
 F2 "Package_TO_SOT_SMD:SOT-223-3_TabPin2" 200 -75 50 H I L CIN
 F3 "" 0 0 50 H I L CNN
 $FPLIST
@@ -114,11 +114,11 @@ X S 3 100 -200 100 U 50 50 1 1 P
 ENDDRAW
 ENDDEF
 #
-# Transistor_FET:BSS138
+# Transistor_FET_BSS138
 #
-DEF Transistor_FET:BSS138 Q 0 0 Y N 1 F N
+DEF Transistor_FET_BSS138 Q 0 0 Y N 1 F N
 F0 "Q" 200 75 50 H V L CNN
-F1 "Transistor_FET:BSS138" 200 0 50 H V L CNN
+F1 "Transistor_FET_BSS138" 200 0 50 H V L CNN
 F2 "Package_TO_SOT_SMD:SOT-23" 200 -75 50 H I L CIN
 F3 "" 0 0 50 H I L CNN
 ALIAS 2N7002 MMBF170
@@ -149,11 +149,11 @@ X D 3 100 200 100 D 50 50 1 1 P
 ENDDRAW
 ENDDEF
 #
-# chiller-rescue:7805
+# chiller-rescue_7805
 #
-DEF chiller-rescue:7805 U 0 30 N Y 1 F N
+DEF chiller-rescue_7805 U 0 30 N Y 1 F N
 F0 "U" 150 -196 50 H V C CNN
-F1 "chiller-rescue:7805" 0 200 50 H V C CNN
+F1 "chiller-rescue_7805" 0 200 50 H V C CNN
 F2 "" 0 0 50 H I C CNN
 F3 "" 0 0 50 H I C CNN
 DRAW
@@ -164,11 +164,11 @@ X VO VO 400 50 200 L 40 40 1 1 w
 ENDDRAW
 ENDDEF
 #
-# chiller-rescue:C
+# chiller-rescue_C
 #
-DEF chiller-rescue:C C 0 10 N Y 1 F N
+DEF chiller-rescue_C C 0 10 N Y 1 F N
 F0 "C" 25 100 50 H V L CNN
-F1 "chiller-rescue:C" 25 -100 50 H V L CNN
+F1 "chiller-rescue_C" 25 -100 50 H V L CNN
 F2 "" 38 -150 50 H I C CNN
 F3 "" 0 0 50 H I C CNN
 $FPLIST
@@ -182,11 +182,11 @@ X ~ 2 0 -150 110 U 50 50 1 1 P
 ENDDRAW
 ENDDEF
 #
-# chiller-rescue:CONN_01X03
+# chiller-rescue_CONN_01X03
 #
-DEF chiller-rescue:CONN_01X03 J 0 40 Y N 1 F N
+DEF chiller-rescue_CONN_01X03 J 0 40 Y N 1 F N
 F0 "J" 0 200 50 H V C CNN
-F1 "chiller-rescue:CONN_01X03" 100 0 50 V V C CNN
+F1 "chiller-rescue_CONN_01X03" 100 0 50 V V C CNN
 F2 "" 0 0 50 H I C CNN
 F3 "" 0 0 50 H I C CNN
 $FPLIST
@@ -206,11 +206,11 @@ X P3 3 -200 -100 150 R 50 50 1 1 P
 ENDDRAW
 ENDDEF
 #
-# chiller-rescue:CP
+# chiller-rescue_CP
 #
-DEF chiller-rescue:CP C 0 10 N Y 1 F N
+DEF chiller-rescue_CP C 0 10 N Y 1 F N
 F0 "C" 25 100 50 H V L CNN
-F1 "chiller-rescue:CP" 25 -100 50 H V L CNN
+F1 "chiller-rescue_CP" 25 -100 50 H V L CNN
 F2 "" 38 -150 50 H I C CNN
 F3 "" 0 0 50 H I C CNN
 $FPLIST
@@ -229,11 +229,11 @@ X ~ 2 0 -150 110 U 50 50 1 1 P
 ENDDRAW
 ENDDEF
 #
-# chiller-rescue:POT_TRIM
+# chiller-rescue_POT_TRIM
 #
-DEF chiller-rescue:POT_TRIM RV 0 40 N N 1 F N
+DEF chiller-rescue_POT_TRIM RV 0 40 N N 1 F N
 F0 "RV" -175 0 50 V V C CNN
-F1 "chiller-rescue:POT_TRIM" -100 0 50 V V C CNN
+F1 "chiller-rescue_POT_TRIM" -100 0 50 V V C CNN
 F2 "" 0 0 50 H I C CNN
 F3 "" 0 0 50 H I C CNN
 DRAW
@@ -246,11 +246,11 @@ X 3 3 0 -150 50 U 50 50 1 1 P
 ENDDRAW
 ENDDEF
 #
-# chiller-rescue:R
+# chiller-rescue_R
 #
-DEF chiller-rescue:R R 0 0 N Y 1 F N
+DEF chiller-rescue_R R 0 0 N Y 1 F N
 F0 "R" 80 0 50 V V C CNN
-F1 "chiller-rescue:R" 0 0 50 V V C CNN
+F1 "chiller-rescue_R" 0 0 50 V V C CNN
 F2 "" -70 0 50 V I C CNN
 F3 "" 0 0 50 H I C CNN
 $FPLIST
@@ -264,11 +264,11 @@ X ~ 2 0 -150 50 U 50 50 1 1 P
 ENDDRAW
 ENDDEF
 #
-# omron:G6B-1114C-US5DC
+# omron_G6B-1114C-US5DC
 #
-DEF omron:G6B-1114C-US5DC RL 0 40 Y Y 1 F N
+DEF omron_G6B-1114C-US5DC RL 0 40 Y Y 1 F N
 F0 "RL" 450 150 50 H V L CNN
-F1 "omron:G6B-1114C-US5DC" 450 50 50 H V L CNN
+F1 "omron_G6B-1114C-US5DC" 450 50 50 H V L CNN
 F2 "" 0 0 50 H I C CNN
 F3 "" 0 0 50 H I C CNN
 DRAW
@@ -295,11 +295,11 @@ X ~ 4 200 -300 100 U 50 50 1 1 P
 ENDDRAW
 ENDDEF
 #
-# power:+12V
+# power_+12V
 #
-DEF power:+12V #PWR 0 0 Y Y 1 F P
+DEF power_+12V #PWR 0 0 Y Y 1 F P
 F0 "#PWR" 0 -150 50 H I C CNN
-F1 "power:+12V" 0 140 50 H V C CNN
+F1 "power_+12V" 0 140 50 H V C CNN
 F2 "" 0 0 50 H I C CNN
 F3 "" 0 0 50 H I C CNN
 DRAW
@@ -310,11 +310,11 @@ X +12V 1 0 0 0 U 50 50 1 1 W N
 ENDDRAW
 ENDDEF
 #
-# power:+5V
+# power_+5V
 #
-DEF power:+5V #PWR 0 0 Y Y 1 F P
+DEF power_+5V #PWR 0 0 Y Y 1 F P
 F0 "#PWR" 0 -150 50 H I C CNN
-F1 "power:+5V" 0 140 50 H V C CNN
+F1 "power_+5V" 0 140 50 H V C CNN
 F2 "" 0 0 50 H I C CNN
 F3 "" 0 0 50 H I C CNN
 DRAW
@@ -325,11 +325,11 @@ X +5V 1 0 0 0 U 50 50 1 1 W N
 ENDDRAW
 ENDDEF
 #
-# power:GND
+# power_GND
 #
-DEF power:GND #PWR 0 0 Y Y 1 F P
+DEF power_GND #PWR 0 0 Y Y 1 F P
 F0 "#PWR" 0 -250 50 H I C CNN
-F1 "power:GND" 0 -150 50 H V C CNN
+F1 "power_GND" 0 -150 50 H V C CNN
 F2 "" 0 0 50 H I C CNN
 F3 "" 0 0 50 H I C CNN
 DRAW
@@ -338,11 +338,11 @@ X GND 1 0 0 0 D 50 50 1 1 W N
 ENDDRAW
 ENDDEF
 #
-# power:PWR_FLAG
+# power_PWR_FLAG
 #
-DEF power:PWR_FLAG #FLG 0 0 N N 1 F P
+DEF power_PWR_FLAG #FLG 0 0 N N 1 F P
 F0 "#FLG" 0 75 50 H I C CNN
-F1 "power:PWR_FLAG" 0 150 50 H V C CNN
+F1 "power_PWR_FLAG" 0 150 50 H V C CNN
 F2 "" 0 0 50 H I C CNN
 F3 "" 0 0 50 H I C CNN
 DRAW
@@ -351,11 +351,11 @@ X pwr 1 0 0 0 U 50 50 0 0 w
 ENDDRAW
 ENDDEF
 #
-# tinkerforge:CONN_01X02
+# tinkerforge_CONN_01X02
 #
-DEF tinkerforge:CONN_01X02 P 0 40 Y N 1 F N
+DEF tinkerforge_CONN_01X02 P 0 40 Y N 1 F N
 F0 "P" 0 150 50 H V C CNN
-F1 "tinkerforge:CONN_01X02" 100 -100 50 V V C CNN
+F1 "tinkerforge_CONN_01X02" 100 -100 50 V V C CNN
 F2 "" 0 -100 50 H V C CNN
 F3 "" 0 -100 50 H V C CNN
 DRAW
@@ -367,11 +367,11 @@ X P2 2 -200 -50 150 R 50 50 1 1 P
 ENDDRAW
 ENDDEF
 #
-# tinkerforge:D
+# tinkerforge_D
 #
-DEF tinkerforge:D D 0 40 N N 1 F N
+DEF tinkerforge_D D 0 40 N N 1 F N
 F0 "D" 0 100 50 H V C CNN
-F1 "tinkerforge:D" 0 -100 50 H V C CNN
+F1 "tinkerforge_D" 0 -100 50 H V C CNN
 F2 "" 0 0 50 H V C CNN
 F3 "" 0 0 50 H V C CNN
 $FPLIST
@@ -389,11 +389,11 @@ X K 2 -150 0 100 R 50 50 1 1 P
 ENDDRAW
 ENDDEF
 #
-# tinkerforge:LCD-20X4
+# tinkerforge_LCD-20X4
 #
-DEF tinkerforge:LCD-20X4 U 0 40 Y Y 1 F N
+DEF tinkerforge_LCD-20X4 U 0 40 Y Y 1 F N
 F0 "U" 0 900 60 H V C CNN
-F1 "tinkerforge:LCD-20X4" 50 -850 60 H V C CNN
+F1 "tinkerforge_LCD-20X4" 50 -850 60 H V C CNN
 F2 "" 0 0 60 H V C CNN
 F3 "" 0 0 60 H V C CNN
 DRAW

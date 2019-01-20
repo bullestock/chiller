@@ -603,8 +603,6 @@ F 3 "" H 3700 4500 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
-	3700 4500 3700 4550
-Wire Wire Line
 	3700 4700 3550 4700
 Wire Wire Line
 	3550 4800 3700 4800
@@ -766,7 +764,6 @@ Wire Wire Line
 	6850 4750 7600 4750
 Wire Wire Line
 	7050 4000 7050 4450
-NoConn ~ 6850 4150
 $Comp
 L Transistor_FET:BSS138 Q2
 U 1 1 5BCBCC06
@@ -776,7 +773,7 @@ F 1 "BSS138" H 4006 5245 50  0000 L CNN
 F 2 "Package_TO_SOT_SMD:SOT-23" H 4000 5125 50  0001 L CIN
 F 3 "https://www.fairchildsemi.com/datasheets/BS/BSS138.pdf" H 3800 5200 50  0001 L CNN
 	1    3800 5200
-	-1   0    0    1   
+	-1   0    0    -1  
 $EndComp
 $Comp
 L Transistor_FET:BSP129 Q3
@@ -1156,13 +1153,6 @@ F 3 "" H 3850 6400 50  0000 C CNN
 	0    1    1    0   
 $EndComp
 Wire Wire Line
-	3900 4600 3900 4550
-Wire Wire Line
-	3900 4550 3700 4550
-Connection ~ 3700 4550
-Wire Wire Line
-	3700 4550 3700 4700
-Wire Wire Line
 	3850 6550 3850 6600
 Wire Wire Line
 	3850 6600 3700 6600
@@ -1264,11 +1254,20 @@ $Comp
 L omron:G6B-1114C-US5DC RL1
 U 1 1 5BCAFCFB
 P 7800 4400
-F 0 "RL1" H 8230 4446 50  0000 L CNN
-F 1 "G6B-1114C-US5DC" H 8230 4355 50  0000 L CNN
+F 0 "RL1" H 7800 4950 50  0000 L CNN
+F 1 "G6B-1114C-US5DC" H 7800 4850 50  0000 L CNN
 F 2 "modules:DIL-relay" H 7800 4400 50  0001 C CNN
 F 3 "" H 7800 4400 50  0001 C CNN
 	1    7800 4400
 	1    0    0    -1  
 $EndComp
+Wire Wire Line
+	6850 4150 6500 4150
+Wire Wire Line
+	6500 4150 6500 4750
+Wire Wire Line
+	6500 4750 6850 4750
+Connection ~ 6850 4750
+Wire Wire Line
+	3700 4500 3700 4700
 $EndSCHEMATC
