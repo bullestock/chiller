@@ -9,4 +9,5 @@
   (lib (name Potentiometer_SMD)(type KiCad)(uri ${KIPRJMOD}/pretty/Potentiometer_SMD.pretty)(options "")(descr ""))
   (lib (name Resistor_SMD)(type KiCad)(uri ${KIPRJMOD}/pretty/Resistor_SMD.pretty)(options "")(descr ""))
   (lib (name Symbol)(type KiCad)(uri ${KIPRJMOD}/pretty/Symbol.pretty)(options "")(descr ""))
+  (lib (name modules)(type KiCad)(uri ${KIPRJMOD}/modules)(options "")(descr ""))
 )
