@@ -5,15 +5,15 @@
 #define USE_BUZZER  1
 #define SERIAL_DBG  1
 
-const char* VERSION = "1.1.0";
+const char* VERSION = "1.1.1";
 
 const int FLOW_SENSOR_PIN = 2;  // Must have interrupt support
-const int DISPLAY_PIN_1 = 8;
-const int DISPLAY_PIN_2 = 3;
-const int DISPLAY_PIN_3 = 4;
-const int DISPLAY_PIN_4 = 5;
-const int DISPLAY_PIN_5 = 6;
-const int DISPLAY_PIN_6 = 7;
+const int DISPLAY_PIN_1 = 8; // RS
+const int DISPLAY_PIN_2 = 3; // ENABLE
+const int DISPLAY_PIN_3 = 4; // D0
+const int DISPLAY_PIN_4 = 5; // D1
+const int DISPLAY_PIN_5 = 6; // D2
+const int DISPLAY_PIN_6 = 7; // D3
 const int TEMP_SENSOR_1_PIN = 10;
 const int TEMP_SENSOR_2_PIN = 9;
 const int BUZZER_PIN = A0;
@@ -293,6 +293,7 @@ int nof_consecutive_errors = 0;
 int nof_consecutive_clears = 0;
 bool beep_state = false;
 bool first = true;
+bool initializing = true;
 
 void loop() 
 {
@@ -374,6 +375,8 @@ void loop()
             nof_consecutive_errors = 0;
             nof_consecutive_clears = 0;
             signal_ok = true;
+            initializing = false;
+            Serial.println("Initialization done");
         }
     }
     else
@@ -388,8 +391,11 @@ void loop()
         }
     }
 
-    // Signal status to Lasersaur
+    // Low flow is very bad
+    if (low_flow)
+        signal_ok = false;
 
+    // Signal status to Lasersaur
     digitalWrite(RELAY_PIN, signal_ok);
 
     String state = "Idle";
@@ -406,18 +412,25 @@ void loop()
         else
             state = "Too hot";
     }
-    if (!signal_ok)
+    Serial.print("signal_ok ");
+    Serial.print(signal_ok);
+    Serial.print(" initializing ");
+    Serial.println(initializing);
+    // Do not signal 'OK' before we have the required number of OK samples, but do not beep on startup
+    if (!signal_ok && !initializing)
     {
         digitalWrite(BUZZER_PIN, 1);
     }
     else if (temps[0] >= WATER_WARN_TEMP*TEMP_SCALE_FACTOR)
     {
+        Serial.println("Error: water hot");
         digitalWrite(BUZZER_PIN, beep_state);
         beep_state = !beep_state;
         state = "Water hot!";
     }
     else if (temps[1] >= COMPRESSOR_WARN_TEMP*TEMP_SCALE_FACTOR)
     {
+        Serial.println("Error: compressor hot");
         digitalWrite(BUZZER_PIN, beep_state);
         beep_state = !beep_state;
         state = "Water hot!";
