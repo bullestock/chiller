@@ -1,20 +1,18 @@
 import cadquery as cq
 
-extra = 0 # 1
-
 w = 14
-ho = 11.5/2 if extra else 5 # hole offset from edge
+ho = 11.5/2 # hole offset from edge
 gs = 20.5 # grid spacing
 hd = 7.7 # hole diameter
-th = 6 if extra else 3
+th = 6
 sd = 2
-nh = 12 if extra else 1
+nh = 12
 
 def make_hole(o, x):
     sphere_offset = 2
     return (o
             .workplaneFromTagged("bot")
-            .transformed(offset=((x - 0.5*(1-extra))*gs, ho, 0))
+            .transformed(offset=(x*gs, ho, 0))
             .tag("ref")
             .circle(hd/2)
             .cutThruAll()
@@ -24,12 +22,12 @@ def make_hole(o, x):
             .cutThruAll()
             .workplaneFromTagged("ref")
             .transformed(offset=(0, -sphere_offset, 0))
-            .rarray(hd, 1, 2, 1)
+            .rarray(hd+0.5, 1, 2, 1)
             .circle(0.5)
             .extrude(th)
             )
 
-width = (nh+extra)*gs
+width = (nh+2)*gs
 res = (cq.Workplane("XY")
        .tag("bot")
        .box(width, w, th, centered=False)
@@ -43,15 +41,43 @@ res = (res
        .fillet(0.2)
        )
 
-if extra:
+# Outer screw holes
+res = (res
+      .workplaneFromTagged("bot")
+      .transformed(offset=(w/2, w/2, th/2), rotate=(90, 0, 0))
+      .circle(3.5/2)
+      .cutThruAll()
+      .workplaneFromTagged("bot")
+      .transformed(offset=(width - w/2, w/2, th/2), rotate=(90, 0, 0))
+      .circle(3.5/2)
+      .cutThruAll()
+      )
+
+split_offset = (width+gs)/2 - 2
+part1 = True
+res = (res
+       .faces(">X")
+       .workplane(-split_offset)
+       .split(keepBottom=part1)
+      )
+
+peg_dia = 4
+peg_th = 2
+peg_offset = th*0.75
+if part1:
     res = (res
-       .workplaneFromTagged("bot")
-       .transformed(offset=(w/2, w/2, th/2), rotate=(90, 0, 0))
-       .circle(3.5/2)
-       .cutThruAll()
-       .workplaneFromTagged("bot")
-       .transformed(offset=(width - w/2, w/2, th/2), rotate=(90, 0, 0))
-       .circle(3.5/2)
-       .cutThruAll()
-       )
+          .faces(">X")
+          .workplane()
+          .transformed(offset=(0, 0, -peg_offset), rotate=(0, 90, 0))
+          .tag("peg")
+          .circle(peg_dia/2)
+          #.extrude(20)
+          .cutThruAll()
+          .workplaneFromTagged("peg")
+          .transformed(offset=(-peg_dia, 0, 0))
+          .rect(2*peg_dia, peg_th)
+          .cutThruAll()
+          #.extrude(50)
+          )
+
 show_object(res)
