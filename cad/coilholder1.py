@@ -1,14 +1,14 @@
 import cadquery as cq
 
-w = 10
-ho = 3
-gs = 20.5 # grid spacing
-hd = 7.5 # hole diameter
-th = 3
-sd = 2
-nh = 1
-
 extra = 0 # 1
+
+w = 14
+ho = 11.5/2 if extra else 5 # hole offset from edge
+gs = 20.5 # grid spacing
+hd = 7.7 # hole diameter
+th = 6 if extra else 3
+sd = 2
+nh = 12 if extra else 1
 
 def make_hole(o, x):
     sphere_offset = 2
@@ -23,25 +23,35 @@ def make_hole(o, x):
             .rect(hd, ho)
             .cutThruAll()
             .workplaneFromTagged("ref")
-            .transformed(offset=(0, -sphere_offset, th/2))
+            .transformed(offset=(0, -sphere_offset, 0))
             .rarray(hd, 1, 2, 1)
-            .sphere(0.5)
+            .circle(0.5)
+            .extrude(th)
             )
 
+width = (nh+extra)*gs
 res = (cq.Workplane("XY")
        .tag("bot")
-       .box((nh+extra)*gs, w, th, centered=False)
-       .edges(">Z or |Z")
-       .fillet(0.2)
+       .box(width, w, th, centered=False)
       )
 
 for x in range(1, 1+nh):
     res = make_hole(res, x)
 
-if False:
+res = (res
+       .edges(">Z or <Z or |Z")
+       .fillet(0.2)
+       )
+
+if extra:
     res = (res
        .workplaneFromTagged("bot")
-       .transformed(offset=(w/2, w/2, 0))
-       .circle(3)
-       .cutThruAll())
+       .transformed(offset=(w/2, w/2, th/2), rotate=(90, 0, 0))
+       .circle(3.5/2)
+       .cutThruAll()
+       .workplaneFromTagged("bot")
+       .transformed(offset=(width - w/2, w/2, th/2), rotate=(90, 0, 0))
+       .circle(3.5/2)
+       .cutThruAll()
+       )
 show_object(res)
