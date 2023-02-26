@@ -58,7 +58,7 @@ part1 = True
 res = (res
        .faces(">X")
        .workplane(-split_offset)
-       .split(keepBottom=part1)
+       .split(keepBottom=part1, keepTop=not part1)
       )
 
 peg_dia = 4
@@ -78,6 +78,20 @@ if part1:
           .rect(2*peg_dia, peg_th)
           .cutThruAll()
           #.extrude(50)
+          )
+else:
+    e = 0.05
+    res = (res
+          .faces("<X")
+          .workplane()
+          .transformed(offset=(-w/2, 0, peg_offset), rotate=(0, 90, 0))
+          .tag("peg")
+          .circle(peg_dia/2 - e)
+          .extrude(w)
+          .workplaneFromTagged("peg")
+          .transformed(offset=(peg_dia, 0, 0))
+          .rect(2*peg_dia, peg_th - e)
+          .extrude(w)
           )
 
 show_object(res)
