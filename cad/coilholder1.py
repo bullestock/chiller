@@ -1,12 +1,17 @@
 import cadquery as cq
 
+part1 = False
+
 w = 14
 ho = 11.5/2 # hole offset from edge
 gs = 20.5 # grid spacing
 hd = 7.7 # hole diameter
-th = 6
+th = 9
 sd = 2
 nh = 12
+peg_dia = 5
+peg_th = 2.5
+peg_offset = th*0.5
 
 def make_hole(o, x):
     sphere_offset = 2
@@ -54,16 +59,12 @@ res = (res
       )
 
 split_offset = (width+gs)/2 - 2
-part1 = True
 res = (res
        .faces(">X")
        .workplane(-split_offset)
        .split(keepBottom=part1, keepTop=not part1)
       )
 
-peg_dia = 4
-peg_th = 2
-peg_offset = th*0.75
 if part1:
     res = (res
           .faces(">X")
@@ -90,7 +91,7 @@ else:
           .extrude(w)
           .workplaneFromTagged("peg")
           .transformed(offset=(peg_dia, 0, 0))
-          .rect(2*peg_dia, peg_th - e)
+          .rect(1.5*peg_dia, peg_th - e)
           .extrude(w)
           )
 
