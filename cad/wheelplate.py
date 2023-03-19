@@ -1,10 +1,11 @@
 import cadquery as cq
 
 w = 50
+extra = 5
 th = 8
-screw_d = 5
+screw_d = 5.5
 ch_d = 12
-cb_d = 5.5
+cb_d = 7
 cc = 25.4
 ext = 2
 offset = 6
@@ -27,7 +28,5 @@ res = (res
        .workplane()
        .transformed(offset=(w/2 - cc/2 + offset, -ext/2*th, 0))
        .rect(w, ext*th)
-       .cutThruAll()
-       #.faces("|Z")
-       #.fillet(1)
+       .cutBlind(-w+1)
        )
