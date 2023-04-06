@@ -2,7 +2,7 @@ import cadquery as cq
 
 d = 6
 eps = 0.2
-hh = 2*20+eps
+hh = 2*20+0.7
 hw = 9+eps
 th = 8
 

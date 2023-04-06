@@ -10,6 +10,7 @@ cc = 25.4
 ext = 2
 offset = 4
 
+# Base with holes
 res = (cq.Workplane("XY")
        .box(w, w, (1+ext)*th)
        .edges("|Z")
@@ -23,6 +24,7 @@ res = (cq.Workplane("XY")
        .fillet(1)
        )
 
+# Retainer
 res = (res
        .faces("<Y")
        .workplane()
@@ -34,4 +36,13 @@ res = (res
        .transformed(offset=(2*th, -1*th, 0))
        .rect(3*th, 2*th)
        .extrude(th)
+       )
+
+# Cutout for profile
+res = (res
+       .faces("<Z")
+       .workplane()
+       .transformed(offset=(-w/2, 0, 0), rotate=(90, 0, 0))
+       .rect(12, 10)
+       .cutThruAll()
        )
