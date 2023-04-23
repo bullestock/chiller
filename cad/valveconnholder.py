@@ -20,10 +20,11 @@ res = (cq.Workplane("XY")
        )
 
 extra = 5
+cutout_depth = d2-d1-2
 cutout = (cq.Workplane("XY")
           .tag("cbot")
           # Main cavity
-          .transformed(offset=(0, 0, d2-d1))
+          .transformed(offset=(0, 0, cutout_depth))
           .rect(h1 + 2, h1)
           .extrude(d2)
           .edges("|Z")
@@ -48,7 +49,31 @@ cutout = (cq.Workplane("XY")
 
 res = res - cutout
 
-# TODO: Screw holes
+# Screw holes
+
+mso = w1*0.6
+msd = 4.5
+mcsd = 10
+csd = 3.5
+ndia = 6.5
+nth = 3
+
+res = (res
+       .workplaneFromTagged("bot")
+       .transformed(offset=(mso, mso, cutout_depth))
+       .cskHole(msd, mcsd, 82)
+       .workplaneFromTagged("bot")
+       .transformed(offset=(-mso, -mso, cutout_depth))
+       .cskHole(msd, mcsd, 82)
+       .workplaneFromTagged("bot")
+       .rarray((w2+w3)/2, (h1+h2)/2, 2, 2)
+       .circle(csd/2)
+       .cutThruAll()
+       .workplaneFromTagged("bot")
+       .rarray((w2+w3)/2, (h1+h2)/2, 2, 2)
+       .polygon(6, ndia)
+       .cutBlind(nth)
+       )
 
 show_object(res)
 #show_object(cutout)
