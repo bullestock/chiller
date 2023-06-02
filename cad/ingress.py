@@ -2,10 +2,10 @@ import cadquery as cq
 import math
 
 tube_r = 11/2 # tube inner radius
-d1 = 20 # height of vertical tube
+d1 = 3 # height of vertical tube
 r1 = 25 # radius of first bend
-a1 = 89 # angle of first bend in degrees
-d2 = 3 # length of horizontal tube
+a1 = 60 # angle of first bend in degrees
+d2 = 20 # length of horizontal tube
 wth = 1.5 # tube wall thickness
 plate_w = 28
 plate_th = 3
@@ -22,19 +22,12 @@ path = cq.Workplane("XZ" ).vLine(d1).threePointArc(ap1, ap2).polarLine(d2, 90 - 
 # create tube by sweeping along path
 tube = cq.Workplane("XY").circle(tube_r).sweep(path).faces(">Z or <Z").shell(wth)
 
-plate = (tube
-         .center(0, 0)
-         .workplane()
-         .transformed(rotate=(0, 270, 0), offset=(r1+d2, 0, r1+d1))
+plate = (cq.Workplane("XY")
          .tag("pbot")
          .rect(plate_w, plate_w)
          .extrude(plate_th)
-         .edges("|X")
+         .edges("|Z")
          .fillet(2)
-         .workplaneFromTagged("pbot")
-         .transformed(offset=(-9, 0, 0))
-         .rect(plate_w/2-tube_r, 2*tube_r)
-         .extrude("next")
          .workplaneFromTagged("pbot")
          .circle(tube_r)
          .cutBlind(plate_th)
@@ -47,9 +40,20 @@ plate = (tube
 # ribs on tube
 ring = cq.Workplane("YZ").moveTo(tube_r+wth*0.7).circle(1).revolve()
 
+# rotation vectors
+sv = (0, 0, 0)
+ev = (0, 1, 0)
+
+# calculate point rotation for rings
+def get_point(dist):
+    return (r1*math.cos(math.radians(a1)) + dist*math.cos(math.radians(90-a1)),
+            0,
+            plate_th+r1*math.sin(math.radians(a1)) + dist*math.sin(math.radians(90-a1)))
+
 res = (plate
-       .union(ring.translate((0, 0, 5)), clean=False)
-       .union(ring.translate((0, 0, 10)), clean=False)
-       .union(ring.translate((0, 0, 15)), clean=False)
+       .union(tube, clean=False)
+       .union(ring.rotate(sv, ev, a1).translate(get_point(d2-5)), clean=False)
+       .union(ring.rotate(sv, ev, a1).translate(get_point(d2-10)), clean=False)
+       .union(ring.rotate(sv, ev, a1).translate(get_point(d2-15)), clean=False)
        )
 show_object(res)
