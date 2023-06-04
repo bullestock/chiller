@@ -65,10 +65,12 @@ res = (res
        .workplaneFromTagged("bot")
        .transformed(offset=(-mso, -mso, cutout_depth))
        .cskHole(msd, mcsd, 82)
+       # M3 holes
        .workplaneFromTagged("bot")
        .rarray((w2+w3)/2, (h1+h2)/2, 2, 2)
        .circle(csd/2)
        .cutThruAll()
+       # M3 nuts
        .workplaneFromTagged("bot")
        .rarray((w2+w3)/2, (h1+h2)/2, 2, 2)
        .polygon(6, ndia)
