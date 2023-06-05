@@ -56,7 +56,16 @@
           "width": 0.0
         }
       ],
-      "drc_exclusions": [],
+      "drc_exclusions": [
+        "missing_courtyard|101117400|115874800|96479dae-b0e0-4092-8a36-afec6df99a81|00000000-0000-0000-0000-000000000000",
+        "missing_courtyard|132080000|86233000|9e52b430-f5a8-4565-88bd-c105ce87706c|00000000-0000-0000-0000-000000000000",
+        "silk_edge_clearance|142287666|89348000|f463e960-ed1b-403a-b7cf-852e24742a46|ed7455e2-1e67-4124-88f6-79e2fea7d479",
+        "silk_edge_clearance|142662000|103747031|2dcb2941-de71-4d85-84eb-1a6377892170|78eafd10-36b9-4c9f-b9ee-59f1fed80120",
+        "silk_edge_clearance|147512000|103756827|2dcb2941-de71-4d85-84eb-1a6377892170|12a42c00-21cc-4c4a-806e-c78cc61da819",
+        "silk_edge_clearance|147512000|95077800|2d594dcf-ed56-48e4-bda7-53fcfb3e79af|56f0ab3a-1b7f-406f-8602-3891c3fc905a",
+        "silk_edge_clearance|149320577|107771200|2bfdf44e-5c5a-4bd6-a2e7-e3b179ce8e6d|5783d6b8-da01-4fc8-a690-2e762605d3e0",
+        "silk_edge_clearance|151626588|91071200|fdaf632f-6f0b-4a40-8c62-9340d60d54cc|73edf85e-0e4e-4bed-b3a6-1241946742d4"
+      ],
       "meta": {
         "version": 2
       },
@@ -85,18 +94,18 @@
         "lib_footprint_mismatch": "ignore",
         "malformed_courtyard": "error",
         "microvia_drill_out_of_range": "error",
-        "missing_courtyard": "ignore",
+        "missing_courtyard": "warning",
         "missing_footprint": "warning",
         "net_conflict": "warning",
-        "npth_inside_courtyard": "ignore",
+        "npth_inside_courtyard": "warning",
         "padstack": "error",
-        "pth_inside_courtyard": "ignore",
+        "pth_inside_courtyard": "warning",
         "shorting_items": "error",
         "silk_edge_clearance": "warning",
         "silk_over_copper": "warning",
         "silk_overlap": "warning",
         "skew_out_of_range": "error",
-        "solder_mask_bridge": "ignore",
+        "solder_mask_bridge": "warning",
         "starved_thermal": "error",
         "text_height": "warning",
         "text_thickness": "warning",
