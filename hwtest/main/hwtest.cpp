@@ -24,11 +24,12 @@ constexpr const pin_def inputs[] = {
 // Only ADC1 is supported
 constexpr const int analog_inputs[] = {
     // Current sense
-    39,
+    3, // SensVN
 };
 
 constexpr const pin_def outputs[] = {
     {  2, "Display DC" },
+    {  4, "Display Reset" },
     {  5, "Display CS" },
     { 16, "Compressor relay" },
     { 18, "Display SCK" },
