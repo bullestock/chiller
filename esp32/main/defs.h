@@ -1,6 +1,7 @@
 #pragma once
 
 #include <driver/gpio.h>
+#include <esp_adc/adc_oneshot.h>
 
 constexpr const char* VERSION = "0.1";
 
@@ -16,6 +17,6 @@ constexpr const auto PIN_LEVEL = (gpio_num_t) 16;
 constexpr const auto PIN_TEMP = (gpio_num_t) 15;
 constexpr const auto PIN_RELAY_COMP = (gpio_num_t) 16;
 constexpr const auto PIN_RELAY_RDY = (gpio_num_t) 21;
-constexpr const auto PIN_CUR_SENSE = (gpio_num_t) 39;
+constexpr const auto CHAN_CUR_SENSE = (adc_channel_t) 3; // SensVN
 
 constexpr const char* TAG = "CHLR";

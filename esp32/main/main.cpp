@@ -7,6 +7,8 @@
 #include "defs.h"
 #include "hw.h"
 
+#include <TFT_eSPI.h>
+
 extern "C"
 void app_main()
 {
@@ -28,6 +30,10 @@ void app_main()
     if (debug)
         run_console();        // never returns
 
+    TFT_eSPI tft;
+    tft.init();
+    tft.fillScreen(0xF81F);
+    
     printf("\nStarting application\n");
     //xTaskCreate(led_task, "led_task", 4*1024, NULL, 5, NULL);
 

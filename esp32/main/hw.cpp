@@ -4,6 +4,8 @@
 #include <freertos/FreeRTOS.h>
 #include <driver/ledc.h>
 
+static adc_oneshot_unit_handle_t adc1_handle;
+
 void init_hardware()
 {
     // Inputs
@@ -15,8 +17,7 @@ void init_hardware()
        (1ULL << PIN_EXT_1) |
        (1ULL << PIN_EXT_2) |
        (1ULL << PIN_LEVEL) |
-       (1ULL << PIN_TEMP) |
-       (1ULL << PIN_CUR_SENSE);
+       (1ULL << PIN_TEMP);
     io_conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
     io_conf.pull_up_en = GPIO_PULLUP_DISABLE;
     ESP_ERROR_CHECK(gpio_config(&io_conf));
@@ -34,6 +35,23 @@ void init_hardware()
     io_conf.pull_up_en = GPIO_PULLUP_DISABLE;
     ESP_ERROR_CHECK(gpio_config(&io_conf));
 
+    adc_oneshot_unit_init_cfg_t init_config1 = {
+        .unit_id = ADC_UNIT_1,
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 1, 0)
+        .clk_src = static_cast<adc_oneshot_clk_src_t>(0),
+#endif
+        .ulp_mode = ADC_ULP_MODE_DISABLE,
+    };
+    ESP_ERROR_CHECK(adc_oneshot_new_unit(&init_config1, &adc1_handle));
+
+    adc_oneshot_chan_cfg_t config = {
+        .atten = ADC_ATTEN_DB_11,
+        .bitwidth = ADC_BITWIDTH_DEFAULT,
+    };
+    ESP_ERROR_CHECK(adc_oneshot_config_channel(adc1_handle,
+                                               CHAN_CUR_SENSE,
+                                               &config));
+    
     compressor_on(false);
     ready_on(false);
 }

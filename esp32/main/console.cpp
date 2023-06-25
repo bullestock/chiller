@@ -11,6 +11,8 @@
 
 #include <driver/uart.h>
 
+#include <TFT_eSPI.h>
+
 #include "linenoise/linenoise.h"
 #include "argtable3/argtable3.h"
 
@@ -27,10 +29,84 @@ static int toggle_compressor_relay(int, char**)
     return 0;
 }
 
+static unsigned int rainbow(int value)
+{
+  uint8_t red = 0; // Red is the top 5 bits of a 16 bit colour value
+  uint8_t green = 0;// Green is the middle 6 bits
+  uint8_t blue = 0; // Blue is the bottom 5 bits
+
+  uint8_t quadrant = value / 32;
+
+  if (quadrant == 0) {
+    blue = 31;
+    green = 2 * (value % 32);
+    red = 0;
+  }
+  if (quadrant == 1) {
+    blue = 31 - (value % 32);
+    green = 63;
+    red = 0;
+  }
+  if (quadrant == 2) {
+    blue = 0;
+    green = 63;
+    red = value % 32;
+  }
+  if (quadrant == 3) {
+    blue = 0;
+    green = 63 - 2 * (value % 32);
+    red = 31;
+  }
+  return (red << 11) + (green << 5) + blue;
+}
+
+static long map(long x, long in_min, long in_max, long out_min, long out_max)
+{
+  return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
+}
+
 static int test_display(int, char**)
 {
     printf("Running display test\n");
 
+    TFT_eSPI tft;
+    tft.init();
+
+    tft.fillScreen(TFT_BLACK);
+    tft.startWrite();
+    const int MAX_X = 320;
+    const int MAX_Y = 480;
+    for (int px = 1; px < MAX_X; px++)
+    {
+        for (int py = 0; py < MAX_Y; py++)
+        {
+            float x0 = (map(px, 0, MAX_X, -250000/2, -242500/2)) / 100000.0;
+            float yy0 = (map(py, 0, MAX_Y, -75000/4, -61000/4)) / 100000.0; 
+            float xx = 0.0;
+            float yy = 0.0;
+            int iteration = 0;
+            int max_iteration = 128;
+            while (((xx * xx + yy * yy) < 4) &&
+                   (iteration < max_iteration))
+            {
+                float xtemp = xx * xx - yy * yy + x0;
+                yy = 2 * xx * yy + yy0;
+                xx = xtemp;
+                iteration++;
+            }
+            int color = rainbow((3*iteration+64)%128);
+            tft.drawPixel(px, py, color);
+        }
+    }
+    tft.endWrite();
+
+    return 0;
+}
+
+static int reboot(int, char**)
+{
+    printf("Reboot...\n");
+    esp_restart();
     return 0;
 }
 
@@ -111,6 +187,15 @@ void run_console()
     };
     ESP_ERROR_CHECK(esp_console_cmd_register(&test_display_cmd));
 
+    const esp_console_cmd_t reboot_cmd = {
+        .command = "reboot",
+        .help = "Reboot",
+        .hint = nullptr,
+        .func = &reboot,
+        .argtable = nullptr
+    };
+    ESP_ERROR_CHECK(esp_console_cmd_register(&reboot_cmd));
+    
     const char* prompt = LOG_COLOR_I "bigbro> " LOG_RESET_COLOR;
     int probe_status = linenoiseProbe();
     if (probe_status)
