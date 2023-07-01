@@ -103,6 +103,21 @@ static int test_display(int, char**)
     return 0;
 }
 
+static int test_temp(int, char**)
+{
+    printf("Running temperature sensor test\n");
+
+    for (int n = 0; n < 10; ++n)
+    {
+        vTaskDelay(500/portTICK_PERIOD_MS);
+        const auto values = read_temperatures();
+        printf("Water %3.2f   Compressor %3.2f\n",
+               values.water, values.compressor);
+    }
+    
+    return 0;
+}
+
 static int reboot(int, char**)
 {
     printf("Reboot...\n");
@@ -186,6 +201,15 @@ void run_console()
         .argtable = nullptr
     };
     ESP_ERROR_CHECK(esp_console_cmd_register(&test_display_cmd));
+
+    const esp_console_cmd_t test_temp_cmd = {
+        .command = "temp",
+        .help = "Test temperature sensors",
+        .hint = nullptr,
+        .func = &test_temp,
+        .argtable = nullptr
+    };
+    ESP_ERROR_CHECK(esp_console_cmd_register(&test_temp_cmd));
 
     const esp_console_cmd_t reboot_cmd = {
         .command = "reboot",
