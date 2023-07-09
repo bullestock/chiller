@@ -1,0 +1,4 @@
+Missing:
+- flow sensor input
+- fan output + control
+- buzzer output
