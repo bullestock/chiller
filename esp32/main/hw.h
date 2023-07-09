@@ -3,8 +3,12 @@
 void init_hardware();
 void detect_ds18b20();
 
-void compressor_on(bool on);
-void ready_on(bool on);
+void set_compressor(bool on);
+void set_ready(bool on);
+void set_buzzer(bool on);
+void set_fan(bool on);
+
+int get_and_reset_flow_pulses();
 
 struct Temperatures
 {

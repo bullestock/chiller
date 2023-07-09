@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "esp_log.h"
+#include <driver/pcnt.h>
 #include "owb.h"
 #include "owb_rmt.h"
 #include "ds18b20.h"
@@ -16,8 +17,6 @@ const auto RESOLUTION = DS18B20_RESOLUTION_12_BIT;
 
 #include <freertos/FreeRTOS.h>
 #include <driver/ledc.h>
-
-static adc_oneshot_unit_handle_t adc1_handle;
 
 OneWireBus* owb = nullptr;
 owb_rmt_driver_info rmt_driver_info;
@@ -35,7 +34,8 @@ void init_hardware()
        (1ULL << PIN_EXT_1) |
        (1ULL << PIN_EXT_2) |
        (1ULL << PIN_LEVEL) |
-       (1ULL << PIN_TEMP);
+       (1ULL << PIN_TEMP) |
+       (1ULL << PIN_FLOW);
     io_conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
     io_conf.pull_up_en = GPIO_PULLUP_DISABLE;
     ESP_ERROR_CHECK(gpio_config(&io_conf));
@@ -48,31 +48,36 @@ void init_hardware()
        (1ULL << PIN_DISP_CS) |
        (1ULL << PIN_DISP_SDO) |
        (1ULL << PIN_RELAY_COMP) |
-       (1ULL << PIN_RELAY_RDY);
+       (1ULL << PIN_RELAY_RDY) |
+       (1ULL << PIN_BUZZER) |
+       (1ULL << PIN_FAN);
     io_conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
     io_conf.pull_up_en = GPIO_PULLUP_DISABLE;
     ESP_ERROR_CHECK(gpio_config(&io_conf));
 
-    adc_oneshot_unit_init_cfg_t init_config1 = {
-        .unit_id = ADC_UNIT_1,
-#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 1, 0)
-        .clk_src = static_cast<adc_oneshot_clk_src_t>(0),
-#endif
-        .ulp_mode = ADC_ULP_MODE_DISABLE,
-    };
-    ESP_ERROR_CHECK(adc_oneshot_new_unit(&init_config1, &adc1_handle));
+    set_compressor(false);
+    set_ready(false);
 
-    adc_oneshot_chan_cfg_t config = {
-        .atten = ADC_ATTEN_DB_11,
-        .bitwidth = ADC_BITWIDTH_DEFAULT,
-    };
-    ESP_ERROR_CHECK(adc_oneshot_config_channel(adc1_handle,
-                                               CHAN_CUR_SENSE,
-                                               &config));
+    pcnt_config_t pcnt_config;
+    pcnt_config.pulse_gpio_num = PIN_FLOW;
+    pcnt_config.ctrl_gpio_num = -1;
+    pcnt_config.channel = PCNT_CHANNEL_0;
+    pcnt_config.unit = PCNT_UNIT_0;
+    pcnt_config.pos_mode = PCNT_COUNT_INC;
+    pcnt_config.neg_mode = PCNT_COUNT_DIS;
+    pcnt_config.lctrl_mode = PCNT_MODE_KEEP;
+    pcnt_config.hctrl_mode = PCNT_MODE_KEEP;
+    pcnt_config.counter_h_lim = 0;
+    pcnt_config.counter_l_lim = 0;
+
+    ESP_ERROR_CHECK(pcnt_unit_config(&pcnt_config));
     
-    compressor_on(false);
-    ready_on(false);
-
+    pcnt_counter_pause(PCNT_UNIT_0);
+    pcnt_counter_clear(PCNT_UNIT_0);
+    pcnt_set_filter_value(PCNT_UNIT_0, 100);
+    pcnt_filter_enable(PCNT_UNIT_0);
+    pcnt_counter_resume(PCNT_UNIT_0);
+    
     detect_ds18b20();
 }
 
@@ -114,14 +119,32 @@ void detect_ds18b20()
     }
 }
 
-void compressor_on(bool on)
+void set_compressor(bool on)
 {
     ESP_ERROR_CHECK(gpio_set_level(PIN_RELAY_COMP, on));
 }
 
-void ready_on(bool on)
+void set_ready(bool on)
 {
     ESP_ERROR_CHECK(gpio_set_level(PIN_RELAY_RDY, on));
+}
+
+void set_buzzer(bool on)
+{
+    ESP_ERROR_CHECK(gpio_set_level(PIN_BUZZER, on));
+}
+
+void set_fan(bool on)
+{
+    ESP_ERROR_CHECK(gpio_set_level(PIN_FAN, on));
+}
+
+int get_and_reset_flow_pulses()
+{
+    int16_t temp_count;
+    pcnt_get_counter_value(PCNT_UNIT_0, &temp_count);
+    pcnt_counter_clear(PCNT_UNIT_0);
+    return temp_count;
 }
 
 Temperatures read_temperatures()

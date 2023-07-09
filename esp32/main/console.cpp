@@ -21,9 +21,9 @@ static int toggle_compressor_relay(int, char**)
     for (int n = 0; n < 10; ++n)
     {
         vTaskDelay(500/portTICK_PERIOD_MS);
-        compressor_on(true);
+        set_compressor(true);
         vTaskDelay(500/portTICK_PERIOD_MS);
-        compressor_on(false);
+        set_compressor(false);
     }
     printf("done\n");
     return 0;
