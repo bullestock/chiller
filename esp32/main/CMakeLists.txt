@@ -4,3 +4,5 @@ idf_component_register(SRCS
                        hw.cpp
                        util.cpp
                        INCLUDE_DIRS ".")
+
+#add_definitions(-DSIMULATE)
