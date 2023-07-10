@@ -13,13 +13,26 @@
 
 using Thresholds = std::vector<std::pair<float, uint16_t>>;
 
+static constexpr const auto small_font = &FreeSans12pt7b;
+static constexpr const auto medium_font = &FreeSansBold18pt7b;
+static constexpr const auto large_font = &FreeSansBold24pt7b;
+static constexpr const int GFXFF = 1;
+
 void set_status(TFT_eSPI& tft, const std::string& status, uint16_t colour = TFT_WHITE)
 {
-    tft.fillRect(TFT_WIDTH/2, TFT_HEIGHT/2, TFT_WIDTH/2, TFT_HEIGHT/2, TFT_BLACK);
+    static std::string last_status;
+
+    if (status != last_status)
+    {
+        tft.fillRect(TFT_HEIGHT/2, TFT_WIDTH/2, TFT_HEIGHT/2, TFT_WIDTH/2, TFT_BLACK);
+        last_status = status;
+    }
     tft.setTextColor(colour);
-    tft.drawString(status.c_str(),
-                   TFT_WIDTH/2 + 5, TFT_HEIGHT/2 + 5,
-                   2);
+    tft.setFreeFont(large_font);
+    const auto w = tft.textWidth(status.c_str(), GFXFF);
+    const auto x = TFT_HEIGHT/2 + TFT_HEIGHT/4 - w/2;
+    const auto y = TFT_HEIGHT/2 - 20;
+    tft.drawString(status.c_str(), x, y, GFXFF);
 }
 
 void fatal_error(TFT_eSPI& tft, const std::string& error)
@@ -67,28 +80,29 @@ void set_colour(TFT_eSPI& tft, float value,
 // +---+---+
 // | 2 | 3 |
 // +---+---+
-void show_value(TFT_eSPI& tft, int quadrant, float value, int nof_decimals,
+void show_value(TFT_eSPI& tft, int quadrant, float value,
+                int nof_int_digits, int nof_dec_digits,
                 const Thresholds& thresholds, bool invert = false)
 {
     char buf[20];
     const int int_val = static_cast<int>(value);
-    sprintf(buf, "%3d", int_val);
+    sprintf(buf, "%*d", nof_int_digits, int_val);
     set_colour(tft, value, thresholds, invert);
-    const int x = (quadrant & 1 ? 480/2 : 0) + 480/4 - 100;
-    const int y = (quadrant > 1 ? 320/2 : 0) + 320/4;
-    tft.drawString(buf, x, y, 5);
-    if (nof_decimals)
+    const int x = (quadrant & 1 ? TFT_HEIGHT/2 : 0) + TFT_HEIGHT/4 - 100;
+    const int y = (quadrant > 1 ? TFT_WIDTH/2 : 0) + TFT_WIDTH/8;
+    tft.drawString(buf, x, y, 8);
+    if (nof_dec_digits)
     {
-        const int decimal_digits = std::round((value - int_val)*std::pow(10, nof_decimals));
-        sprintf(buf, "%0*d", nof_decimals, decimal_digits);
-        tft.drawString(buf, x + 50, y, 4);
+        const int decimal_digits = std::round((value - int_val)*std::pow(10, nof_dec_digits));
+        sprintf(buf, ".%0*d", nof_dec_digits, decimal_digits);
+        tft.drawString(buf, x + 102, y + 38, 6);
     }
 }
 
 void show_temperature(TFT_eSPI& tft, int quadrant, float temp,
                       const Thresholds& thresholds)
 {
-    show_value(tft, quadrant, temp, 1, thresholds);
+    show_value(tft, quadrant, temp, 2, 1, thresholds);
 }
 
 void show_flow(TFT_eSPI& tft, int liters_per_hour)
@@ -98,13 +112,16 @@ void show_flow(TFT_eSPI& tft, int liters_per_hour)
     {
         thresholds.push_back(std::make_pair(MIN_FLOW, TFT_RED));
     }
-    show_value(tft, 3, liters_per_hour, 0, thresholds, true);
+    show_value(tft, 2, liters_per_hour, 3, 0, thresholds, true);
 }
 
-static int temp_readings[2][TEMP_AVERAGES];
+static float temp_readings[2][TEMP_AVERAGES];
 
-int add_temp_reading(int index, int temp)
+float add_temp_reading(int index, float temp)
 {
+#ifdef SIMULATE
+    return temp;
+#else
     int sum = 0;
     for (int i = 1; i < TEMP_AVERAGES; ++i)
     {
@@ -115,6 +132,7 @@ int add_temp_reading(int index, int temp)
     temp_readings[index][TEMP_AVERAGES-1] = temp;
     sum += temp;
     return sum/TEMP_AVERAGES;
+#endif
 }
 
 
@@ -141,7 +159,13 @@ void app_main()
 
     TFT_eSPI tft;
     tft.init();
-    tft.fillScreen(0xF81F);
+    tft.setRotation(1);
+    tft.fillScreen(TFT_BLACK);
+    tft.setFreeFont(small_font);
+    tft.setTextColor(TFT_CYAN);
+    tft.drawString("Water", 85, 0, GFXFF);
+    tft.drawString("Compressor", 295, 0, GFXFF);
+    tft.drawString("Flow", 90, TFT_WIDTH/2, GFXFF);
     
     printf("\nStarting application\n");
 
@@ -182,6 +206,9 @@ void app_main()
         //-- Display flow (once every second)
         //
         
+#ifdef SIMULATE
+        liters_per_hour = 123;
+#else
         const unsigned long currentTime = millis();
         if (first || (currentTime >= (last_flow_time + 1000)))
         {
@@ -193,7 +220,8 @@ void app_main()
             printf("Flow: %d\n", liters_per_hour);
             first = false;
         }
-
+#endif
+        
         show_flow(tft, liters_per_hour);
 
         //
