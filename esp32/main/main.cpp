@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string>
+#include <vector>
 
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
@@ -10,12 +11,94 @@
 
 #include <TFT_eSPI.h>
 
-void fatal_error(const std::string& error)
+using Thresholds = std::vector<std::pair<float, uint16_t>>;
+
+void set_status(TFT_eSPI& tft, const std::string& status, uint16_t colour = TFT_WHITE)
 {
-    //!!
+    tft.fillRect(TFT_WIDTH/2, TFT_HEIGHT/2, TFT_WIDTH/2, TFT_HEIGHT/2, TFT_BLACK);
+    tft.setTextColor(colour);
+    tft.drawString(status.c_str(),
+                   TFT_WIDTH/2 + 5, TFT_HEIGHT/2 + 5,
+                   2);
+}
+
+void fatal_error(TFT_eSPI& tft, const std::string& error)
+{
     printf("FATAL: %s\n", error.c_str());
-    vTaskDelay(1000/portTICK_PERIOD_MS);
-    esp_restart();
+    const auto msg = "ERROR:\n" + error;
+    set_status(tft, msg, TFT_RED);
+    set_ready(false);
+    
+    while (1)
+    {
+        set_buzzer(1);
+        vTaskDelay(40/portTICK_PERIOD_MS);
+        set_buzzer(0);
+        vTaskDelay(80/portTICK_PERIOD_MS);
+        set_buzzer(1);
+        vTaskDelay(160/portTICK_PERIOD_MS);
+        set_buzzer(0);
+        vTaskDelay(320/portTICK_PERIOD_MS);
+    }
+}
+
+void set_colour(TFT_eSPI& tft, float value,
+                const Thresholds& thresholds,
+                bool invert)
+{
+    uint16_t colour = TFT_WHITE;
+    if (invert)
+        for (auto it = thresholds.rbegin(); it != thresholds.rend(); ++it)
+        {
+            if (value <= it->first)
+                colour = it->second;
+        }
+    else
+        for (const auto& t : thresholds)
+        {
+            if (value >= t.first)
+                colour = t.second;
+        }
+    tft.setTextColor(colour);
+}
+
+// +---+---+
+// | 0 | 1 |
+// +---+---+
+// | 2 | 3 |
+// +---+---+
+void show_value(TFT_eSPI& tft, int quadrant, float value, int nof_decimals,
+                const Thresholds& thresholds, bool invert = false)
+{
+    char buf[20];
+    const int int_val = static_cast<int>(value);
+    sprintf(buf, "%3d", int_val);
+    set_colour(tft, value, thresholds, invert);
+    const int x = (quadrant & 1 ? 480/2 : 0) + 480/4 - 100;
+    const int y = (quadrant > 1 ? 320/2 : 0) + 320/4;
+    tft.drawString(buf, x, y, 5);
+    if (nof_decimals)
+    {
+        const int decimal_digits = std::round((value - int_val)*std::pow(10, nof_decimals));
+        sprintf(buf, "%0*d", nof_decimals, decimal_digits);
+        tft.drawString(buf, x + 50, y, 4);
+    }
+}
+
+void show_temperature(TFT_eSPI& tft, int quadrant, float temp,
+                      const Thresholds& thresholds)
+{
+    show_value(tft, quadrant, temp, 1, thresholds);
+}
+
+void show_flow(TFT_eSPI& tft, int liters_per_hour)
+{
+    static Thresholds thresholds;
+    if (thresholds.empty())
+    {
+        thresholds.push_back(std::make_pair(MIN_FLOW, TFT_RED));
+    }
+    show_value(tft, 3, liters_per_hour, 0, thresholds, true);
 }
 
 static int temp_readings[2][TEMP_AVERAGES];
@@ -71,6 +154,12 @@ void app_main()
     bool first = true;
     bool initializing = true;
     unsigned long last_flow_time = 0;
+    Thresholds water_thresholds;
+    water_thresholds.push_back(std::make_pair(WATER_WARN_TEMP, TFT_YELLOW));
+    water_thresholds.push_back(std::make_pair(WATER_HOT_TEMP, TFT_RED));
+    Thresholds compressor_thresholds;
+    compressor_thresholds.push_back(std::make_pair(COMPRESSOR_WARN_TEMP, TFT_YELLOW));
+    compressor_thresholds.push_back(std::make_pair(COMPRESSOR_HOT_TEMP, TFT_RED));
 
     while (1)
     {
@@ -80,14 +169,14 @@ void app_main()
 
         const auto temps = read_temperatures();
         if (std::isnan(temps.water))
-            fatal_error("Water temperature sensor malfunction");
+            fatal_error(tft, "Water temperature sensor malfunction");
         if (std::isnan(temps.compressor))
-            fatal_error("Water temperature sensor malfunction");
+            fatal_error(tft, "Water temperature sensor malfunction");
 
         auto temp = add_temp_reading(0, temps.water);
-        // display
+        show_temperature(tft, 0, temp, water_thresholds);
         temp = add_temp_reading(1, temps.compressor);
-        // display
+        show_temperature(tft, 1, temp, compressor_thresholds);
     
         //
         //-- Display flow (once every second)
@@ -105,9 +194,7 @@ void app_main()
             first = false;
         }
 
-        char buf[20];
-        sprintf(buf, "%3d", liters_per_hour);
-        //lcd.print(buf);
+        show_flow(tft, liters_per_hour);
 
         //
         //-- Do checks
@@ -138,8 +225,8 @@ void app_main()
         const auto is_hot = (temps.water > WATER_HOT_TEMP*TEMP_SCALE_FACTOR) ||
             (temps.compressor > COMPRESSOR_HOT_TEMP*TEMP_SCALE_FACTOR);
 
-        const bool currentClearState = !is_hot && !low_flow;
-        if (currentClearState)
+        const bool current_clear_state = !is_hot && !low_flow;
+        if (current_clear_state)
         {
             // We are currently OK
             ++nof_consecutive_clears;
@@ -169,22 +256,32 @@ void app_main()
         if (low_flow)
             signal_ok = false;
 
+        // TODO: Level sensor
+
         // Signal status to Lasersaur
         set_ready(signal_ok);
 
         std::string state = "Idle";
+        uint16_t state_colour = TFT_WHITE;
         if (fan_on)
             state = "Fan on";
         if (compressor_on)
+        {
             state = "Cooling";
+            state_colour = TFT_BLUE;
+        }
         if (low_flow)
+        {
             state = "Flow too low";
+            state_colour = TFT_RED;
+        }
         if (is_hot)
         {
             if (low_flow)
-                state = "Too hot, low flow";
+                state = "Too hot,\nlow flow";
             else
                 state = "Too hot";
+            state_colour = TFT_RED;
         }
         printf("signal_ok %d initializing %d\n", signal_ok, initializing);
         // Do not signal 'OK' before we have the required number of OK samples, but do not beep on startup
@@ -198,20 +295,20 @@ void app_main()
             set_buzzer(beep_state);
             beep_state = !beep_state;
             state = "Water hot!";
+            state_colour = TFT_RED;
         }
         else if (temps.compressor >= COMPRESSOR_WARN_TEMP*TEMP_SCALE_FACTOR)
         {
             printf("Error: compressor hot\n");
             set_buzzer(beep_state);
             beep_state = !beep_state;
-            state = "Water hot!";
+            state = "Compressor hot!";
+            state_colour = TFT_RED;
         }
         else
             set_buzzer(0);
 
-        while (state.length() < 20)
-            state += " ";
-        //lcd.print(state);
+        set_status(tft, state, state_colour);
         vTaskDelay(10);
     }
 }
