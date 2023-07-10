@@ -104,7 +104,7 @@ void detect_ds18b20()
         owb_search_next(owb, &search_state, &found);
     }
     printf("Found %d DS18B20 device%s\n", num_ds18b20_devices, num_ds18b20_devices == 1 ? "" : "s");
-#if 0
+#ifndef SIMULATE
     if (num_ds18b20_devices != NUM_DS18B20_DEVICES)
         fatal_error("DS18B20 device(s) missing");
 #endif
@@ -150,6 +150,11 @@ int get_and_reset_flow_pulses()
 Temperatures read_temperatures()
 {
     Temperatures values;
+#ifdef SIMULATE
+    values.water = 18.2;
+    values.compressor = 42.7;
+    return values;
+#endif
     if (num_ds18b20_devices > 0)
     {
         ds18b20_convert_all(owb);
