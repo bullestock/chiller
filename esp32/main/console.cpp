@@ -13,6 +13,8 @@
 
 #include <TFT_eSPI.h>
 
+static constexpr const int GFXFF = 1;
+
 #include "linenoise/linenoise.h"
 #include "argtable3/argtable3.h"
 
@@ -71,8 +73,11 @@ static int test_display(int, char**)
 
     TFT_eSPI tft;
     tft.init();
-
+    tft.setRotation(1);
+    
     tft.fillScreen(TFT_BLACK);
+#if 1
+    // Mandelbrot
     tft.startWrite();
     const int MAX_X = 320;
     const int MAX_Y = 480;
@@ -98,6 +103,14 @@ static int test_display(int, char**)
             tft.drawPixel(px, py, color);
         }
     }
+#else
+    tft.setFreeFont(&FreeSansBold24pt7b);
+    tft.drawString("42.1", 0, 0, GFXFF);
+    tft.setFreeFont(&FreeSansBold18pt7b);
+    tft.drawString("Compressor", 0, 50, GFXFF);
+    tft.setFreeFont(&FreeSansBold12pt7b);
+    tft.drawString("Compressor", 0, 100, GFXFF);
+#endif
     tft.endWrite();
 
     return 0;
