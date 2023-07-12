@@ -62,7 +62,7 @@
         "silk_edge_clearance|142287666|89348000|f463e960-ed1b-403a-b7cf-852e24742a46|ed7455e2-1e67-4124-88f6-79e2fea7d479",
         "silk_edge_clearance|142662000|103738553|a892a1ba-ea4a-47ee-8877-14a559397f78|78eafd10-36b9-4c9f-b9ee-59f1fed80120",
         "silk_edge_clearance|147512000|103728482|2dcb2941-de71-4d85-84eb-1a6377892170|12a42c00-21cc-4c4a-806e-c78cc61da819",
-        "silk_edge_clearance|147512000|95008905|2d594dcf-ed56-48e4-bda7-53fcfb3e79af|56f0ab3a-1b7f-406f-8602-3891c3fc905a",
+        "silk_edge_clearance|147512000|97450000|87237357-61b2-42e4-8620-b7838742962a|56f0ab3a-1b7f-406f-8602-3891c3fc905a",
         "silk_edge_clearance|151523918|91071200|fdaf632f-6f0b-4a40-8c62-9340d60d54cc|73edf85e-0e4e-4bed-b3a6-1241946742d4",
         "silk_edge_clearance|151757881|107771200|0ad29981-954c-4202-9a98-0d091da06416|5783d6b8-da01-4fc8-a690-2e762605d3e0"
       ],
@@ -221,7 +221,13 @@
     "equivalence_files": []
   },
   "erc": {
-    "erc_exclusions": [],
+    "erc_exclusions": [
+      "lib_symbol_issues|1358900|1689100|603ada98-b9ae-470b-ab87-a1b265c36764|00000000-0000-0000-0000-000000000000|||",
+      "pin_not_connected|495300|622300|41e26b9c-e087-4be2-8b71-7e2636cc0372|00000000-0000-0000-0000-000000000000|||",
+      "pin_not_connected|571500|571500|14c4d233-45a0-45d6-b71b-de4a9514b427|00000000-0000-0000-0000-000000000000|||",
+      "pin_not_connected|571500|673100|de83aed4-0bc7-4411-b7b0-a57be818438b|00000000-0000-0000-0000-000000000000|||",
+      "pin_not_driven|495300|622300|41e26b9c-e087-4be2-8b71-7e2636cc0372|00000000-0000-0000-0000-000000000000|/212a0d71-cc7b-49f8-b4ca-a935e5355dca/e041e33b-a2e4-4dae-9a77-f6c328caa3c7|/212a0d71-cc7b-49f8-b4ca-a935e5355dca/e041e33b-a2e4-4dae-9a77-f6c328caa3c7|"
+    ],
     "meta": {
       "version": 0
     },
@@ -605,6 +611,10 @@
     [
       "212a0d71-cc7b-49f8-b4ca-a935e5355dca",
       ""
+    ],
+    [
+      "e041e33b-a2e4-4dae-9a77-f6c328caa3c7",
+      "Fan MOSFET"
     ]
   ],
   "text_variables": {}
