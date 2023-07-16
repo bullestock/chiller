@@ -77,7 +77,7 @@ result = (result
 result = (result
           .workplaneFromTagged("o")
           .transformed(offset=((d1 + d2)/2 - kn_offset , (d1 + d2)/2 - kn_offset , -ch))
-          .rect(kn_w + 0.1, kn_w + 0.1)
+          .rect(kn_w + 0.2, kn_w + 0.2)
           .cutBlind(kn_l + 1)
           )
 
