@@ -36,6 +36,8 @@ result = (result
           )
 
 angle = math.degrees(math.atan(depth/height))
+log(f'angle: {angle}')
+
 (result
  .faces("<X")
  .workplane(offset=0, invert=False)

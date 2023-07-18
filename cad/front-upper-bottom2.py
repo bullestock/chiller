@@ -3,7 +3,7 @@ import math
 
 slot_w = 3.1
 slot_depth = 3
-thickness = 5
+thickness = 8
 width = 310 - 180
 depth = 51
 angle = 24.84
@@ -11,7 +11,7 @@ hole_x_offset = 155 # End of profile to hole center
 hole_z_offset = 10 # Top of slot to hole center
 flange_w = 10
 hole_cc = 30
-insert_r = 2.1
+insert_r = 2.5
 insert_l = 4
 
 depth_l = depth + thickness
@@ -42,6 +42,11 @@ res = (cq.Workplane("XY")
        .rarray(1, hole_cc, 1, 2)
        .circle(insert_r)
        .cutBlind(-insert_l)
+       # Remove unwanted part
+       .workplaneFromTagged("bot")
+       .transformed(offset=(0, -10, 0))
+       .rect(width, depth)
+       .cutBlind(slot_depth)
        )
 
 show_object(res)

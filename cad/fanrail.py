@@ -3,7 +3,7 @@ import cadquery as cq
 fan_w = 60
 hole_cc2 = 10
 hole_d = 3.5
-fan_d = 55
+fan_d = 58
 
 res = (cq.Workplane("XY")
        .tag("o")

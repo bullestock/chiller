@@ -3,15 +3,15 @@ import math
 
 slot_w = 3.1
 slot_depth = 3
-thickness = 5
+thickness = 8
 width = 180
 depth = 51
 angle = 24.84
 hole_x_offset = 155 # End of profile to hole center
 hole_z_offset = 10 # Top of slot to hole center
-flange_w = 10
+flange_w = 20
 hole_cc = 30
-insert_r = 2.1
+insert_r = 2.5
 insert_l = 4
 
 depth_l = depth + thickness
@@ -32,14 +32,14 @@ res = (cq.Workplane("XY")
        .cutBlind(slot_depth)
        # Flange
        .workplaneFromTagged("bot")
-       .transformed(offset=(hole_x_offset/2, (depth_l - thickness)/2, 0))
+       .transformed(offset=(hole_x_offset - width/2, (depth_l - thickness)/2, 0))
        .rect(flange_w, thickness)
        .extrude(-(hole_z_offset+thickness))
        # Hole for front plate screw
        .workplaneFromTagged("bot")
-       .transformed(offset=(hole_x_offset/2, 0, -(hole_z_offset - slot_depth)),
+       .transformed(offset=(hole_x_offset - width/2, 0, -(hole_z_offset - slot_depth)),
                             rotate=(90, 0, 0))
-       .circle(6/2)
+       .circle(5.5/2)
        .cutThruAll()
        # Holes for connecting to part 2
        .workplaneFromTagged("bot")
@@ -47,6 +47,11 @@ res = (cq.Workplane("XY")
        .rarray(1, hole_cc, 1, 2)
        .circle(insert_r)
        .cutBlind(-insert_l)
+       # Remove unwanted part
+       .workplaneFromTagged("bot")
+       .transformed(offset=(0, -10, 0))
+       .rect(width, depth)
+       .cutBlind(slot_depth)
        )
 
 show_object(res)
