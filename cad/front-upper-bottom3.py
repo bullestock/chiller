@@ -3,9 +3,9 @@ import math
 
 thickness = 4
 width = 20
-depth = 51
+depth = 40
 hole_cc_x = 30
-hole_cc_y = 2*thickness
+hole_cc_y = 10
 hole_r = 3.2/2
 
 depth = depth + thickness
