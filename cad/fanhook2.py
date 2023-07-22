@@ -42,8 +42,8 @@ res = (cq.Workplane("XY")
        .cutThruAll()
        # reinforcement
        .workplaneFromTagged("o")
-       .transformed(offset=(0, -(hook_y_pos - hole_cc2/2)/2, 0))
-       .box(5, hook_y_pos-10 - hole_cc2/2, 15, centered=(True, True, False))
+       .transformed(offset=(0, -(hook_y_pos - hole_cc2/2 - 4.5)/2, 0))
+       .box(5, hook_y_pos-10 - hole_cc2/2 + 4.5, 15, centered=(True, True, False))
        )
 
 
