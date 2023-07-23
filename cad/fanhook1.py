@@ -1,55 +1,72 @@
 import cadquery as cq
 
 fan_w = 60
-hole_cc1 = 50
 hole_cc2 = 10
 hole_d = 3.5
 fan_d = 58
-hook_y_pos = 199
-insert_r = 4.7/2
+extra = 182.5 - 180 + 20
 
 res = (cq.Workplane("XY")
        .tag("o")
-       .box(fan_w, 20, 5, centered=(True, True, False))
+       # Main plate
+       .box(180, 20, 5, centered=(True, True, False))
        .edges("|Z")
        .fillet(3)
-       # screw holes
        .workplaneFromTagged("o")
-       .transformed(offset=(0, hole_cc2/2, 0))
-       .rarray(hole_cc1, 1, 2, 1)
+       # screw holes
+       .transformed(offset=(-fan_w/2, hole_cc2/2, 0))
+       .rarray(hole_cc2, hole_cc2, 2, 1)
        .circle(hole_d/2)
        .cutThruAll()
-       # fan cutout
+       # more screw holes
+       .workplaneFromTagged("o")
+       .transformed(offset=(fan_w/2, hole_cc2/2, 0))
+       .rarray(hole_cc2, hole_cc2, 2, 1)
+       .circle(hole_d/2)
+       .cutThruAll()
+       # screw hole
+       .workplaneFromTagged("o")
+       .transformed(offset=(fan_w/2 + fan_w - hole_cc2/2, hole_cc2/2, 0))
+       .circle(hole_d/2)
+       .cutThruAll()
+       # screw hole
+       .workplaneFromTagged("o")
+       .transformed(offset=(-(fan_w/2 + fan_w - hole_cc2/2), hole_cc2/2, 0))
+       .circle(hole_d/2)
+       .cutThruAll()
+       # fan cutouts
        .workplaneFromTagged("o")
        .transformed(offset=(0, fan_d/2, 0))
+       .rarray(fan_w, 1, 3, 1)
        .circle(fan_d/2)
        .cutThruAll()
-       # hook body
+       # rail body
        .workplaneFromTagged("o")
-       .transformed(offset=(0, -(hook_y_pos - hole_cc2/2), 0))
-       .box(20, 20, 15, centered=(True, True, False))
+       .transformed(offset=(-extra/2, -15, 0))
+       .box(180 + extra, 20, 15, centered=(True, True, False))
        .edges("|Z")
        .fillet(3)
-       # flat part
+       # cut groove
        .workplaneFromTagged("o")
-       .transformed(offset=(0, -hook_y_pos/2, 0))
-       .box(20, hook_y_pos, 5, centered=(True, True, False))
-       .edges("|Z")
-       .fillet(3)
-       # hook cutout
-       .workplaneFromTagged("o")
-       .transformed(offset=(0, -(hook_y_pos - hole_cc2/2), 10), rotate=(0, 90, 0))
+       .transformed(offset=(0, -15, 10), rotate=(0, 90, 0))
        .rect(10, 10)
        .cutThruAll()
-       # reinforcement
-       .workplaneFromTagged("o")
-       .transformed(offset=(0, -(hook_y_pos - hole_cc2/2 - 4.5)/2, 0))
-       .box(5, hook_y_pos-10 - hole_cc2/2 + 4.5, 15, centered=(True, True, False))
-       # hole for insert
-       .workplaneFromTagged("o")
-       .transformed(offset=(0, -hook_y_pos + hole_cc2/2, 0))
-       .circle(insert_r)
+       )
+
+ss1 = (cq.Workplane("XY")
+       .transformed(offset=(80, -22.5, -15))
+       .box(20, 5, 20, centered=(True, True, False))
+       .edges("|Z")
+       .fillet(2.49)
+       .edges("<Z")
+       .fillet(2)
+       .faces(">Z")
+       .workplane()
+       .transformed(offset=(0, 0, -20 + 8), rotate=(90, 0, 0))
+       .circle(4.7/2)
        .cutThruAll()
        )
+
+res = res + ss1 + ss1.translate([-182.5, 0, 0])
 
 show_object(res)
