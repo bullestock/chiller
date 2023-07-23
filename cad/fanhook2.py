@@ -6,6 +6,7 @@ hole_cc2 = 10
 hole_d = 3.5
 fan_d = 58
 hook_y_pos = 199
+insert_r = 4.7/2
 
 res = (cq.Workplane("XY")
        .tag("o")
@@ -44,8 +45,11 @@ res = (cq.Workplane("XY")
        .workplaneFromTagged("o")
        .transformed(offset=(0, -(hook_y_pos - hole_cc2/2 - 4.5)/2, 0))
        .box(5, hook_y_pos-10 - hole_cc2/2 + 4.5, 15, centered=(True, True, False))
+       # hole for insert
+       .workplaneFromTagged("o")
+       .transformed(offset=(0, -hook_y_pos + hole_cc2/2, 0))
+       .circle(insert_r)
+       .cutThruAll()
        )
-
-
 
 show_object(res)
