@@ -88,6 +88,7 @@ void show_value(TFT_eSPI& tft, int quadrant, float value,
     const int int_val = static_cast<int>(value);
     sprintf(buf, "%*d", nof_int_digits, int_val);
     set_colour(tft, value, thresholds, invert);
+    // TODO: Use text width
     const int x = (quadrant & 1 ? TFT_HEIGHT/2 : 0) + TFT_HEIGHT/4 - 100;
     const int y = (quadrant > 1 ? TFT_WIDTH/2 : 0) + TFT_WIDTH/8;
     tft.drawString(buf, x, y, 8);
