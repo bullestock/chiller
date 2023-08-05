@@ -4,7 +4,7 @@ d1 = 16
 d2 = 25
 w1 = 12.5
 w2 = 20
-squeeze = 4
+extra_x = -4
 w3 = 40
 th1 = 2
 h1 = 25.5
@@ -13,14 +13,14 @@ h2 = 40
 # Outer shape
 res = (cq.Workplane("XY")
        .tag("bot")
-       .rect(2*w3-squeeze, h2)
+       .rect(2*w3+extra_x, h2)
        .extrude(d2)
        #.workplaneFromTagged("bot")
        .edges("|Z")
        .fillet(5)
        )
 
-extra = 5
+extra_z = 5
 cutout_depth = d2-d1-2
 cutout = (cq.Workplane("XY")
           .tag("cbot")
@@ -32,13 +32,13 @@ cutout = (cq.Workplane("XY")
           .fillet(2)
           # Round cutout for pipes
           .workplaneFromTagged("cbot")
-          .transformed(offset=(0, h2/2, d2-extra),
+          .transformed(offset=(0, h2/2, d2-extra_z),
                        rotate=(90, 0, 0))
           .circle(w1/2)
           .extrude(h2)
           # Extension of round cutout
           .workplaneFromTagged("cbot")
-          .transformed(offset=(0, 0, d2-extra))
+          .transformed(offset=(0, 0, d2-extra_z))
           .rect(w1, h2)
           .extrude(d1)
           # Cutout for flanges
@@ -49,15 +49,15 @@ cutout = (cq.Workplane("XY")
           )
 
 res = (res
-       - cutout.translate((-(w3-squeeze)/2, 0, 0))
-       - cutout.translate(((w3-squeeze)/2, 0, 0))
+       - cutout.translate((-(w3+extra_x)/2, 0, 0))
+       - cutout.translate(((w3+extra_x)/2, 0, 0))
        )
 
-log(f'cc: {w3-squeeze}')
+log(f'cc: {w3+extra_x}')
 
 # Screw holes
 
-msox = w1*0.6 + (w3-squeeze)/2
+msox = w1*0.6 + (w3+extra_x)/2
 msoy = w1*0.6
 msd = 4.5
 mcsd = 10
@@ -81,12 +81,12 @@ res = (res
        .cskHole(msd, mcsd, 82)
        # screw holes
        .workplaneFromTagged("bot")
-       .rarray((w2+w3)/2 + squeeze/2, (h1+h2)/2, 3, 2)
+       .rarray((w2+w3)/2 - extra_x/2, (h1+h2)/2, 3, 2)
        .circle(csd/2)
        .cutThruAll()
        # nut holes
        .workplaneFromTagged("bot")
-       .rarray((w2+w3)/2 + squeeze/2, (h1+h2)/2, 3, 2)
+       .rarray((w2+w3)/2 - extra_x/2, (h1+h2)/2, 3, 2)
        .polygon(6, ndia)
        .cutBlind(nth)
        )
