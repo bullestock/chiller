@@ -3,17 +3,19 @@ import cadquery as cq
 d1 = 16
 d2 = 25
 w1 = 12.5
-w2 = 20
-extra_x = -4
+w2 = 20 # Valve flange width
+extra_x = 20
 w3 = 40
 th1 = 2
 h1 = 25.5
 h2 = 40
 
 # Outer shape
+ow = 2*w3+extra_x
+log(f'ow {ow}')
 res = (cq.Workplane("XY")
        .tag("bot")
-       .rect(2*w3+extra_x, h2)
+       .rect(ow, h2)
        .extrude(d2)
        #.workplaneFromTagged("bot")
        .edges("|Z")
@@ -65,6 +67,9 @@ csd = 3.5
 ndia = 6.5
 nth = 3
 
+screw_x_cc = ow/2 - 6
+screw_x2_cc = screw_x_cc - 30
+
 res = (res
        # mounting holes
        .workplaneFromTagged("bot")
@@ -81,12 +86,20 @@ res = (res
        .cskHole(msd, mcsd, 82)
        # screw holes
        .workplaneFromTagged("bot")
-       .rarray((w2+w3)/2 - extra_x/2, (h1+h2)/2, 3, 2)
+       .rarray(2*screw_x_cc, (h1+h2)/2, 2, 2)
+       .circle(csd/2)
+       .cutThruAll()
+       .workplaneFromTagged("bot")
+       .rarray(2*screw_x2_cc, (h1+h2)/2, 2, 2)
        .circle(csd/2)
        .cutThruAll()
        # nut holes
        .workplaneFromTagged("bot")
-       .rarray((w2+w3)/2 - extra_x/2, (h1+h2)/2, 3, 2)
+       .rarray(2*screw_x_cc, (h1+h2)/2, 2, 2)
+       .polygon(6, ndia)
+       .cutBlind(nth)
+       .workplaneFromTagged("bot")
+       .rarray(2*screw_x2_cc, (h1+h2)/2, 2, 2)
        .polygon(6, ndia)
        .cutBlind(nth)
        )
