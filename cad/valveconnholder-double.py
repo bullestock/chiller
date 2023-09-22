@@ -9,6 +9,7 @@ w3 = 40
 th1 = 2
 h1 = 25.5
 h2 = 40
+extra_dist = 30
 
 # Outer shape
 ow = 2*w3+extra_x
@@ -17,7 +18,6 @@ res = (cq.Workplane("XY")
        .tag("bot")
        .rect(ow, h2)
        .extrude(d2)
-       #.workplaneFromTagged("bot")
        .edges("|Z")
        .fillet(5)
        )
@@ -63,26 +63,38 @@ msox = w1*0.6 + (w3+extra_x)/2
 msoy = w1*0.6
 msd = 4.5
 mcsd = 10
-csd = 3.5
-ndia = 6.5
+csd = 3.7
+ndia = 6.4
 nth = 3
 
 screw_x_cc = ow/2 - 6
 screw_x2_cc = screw_x_cc - 30
 
+flange = (cq.Workplane("XY")
+          .rect(ow, h2 + extra_dist)
+          .extrude(cutout_depth)
+          .edges("|Z")
+          .fillet(5)
+          .edges(">Z")
+          .fillet(3)
+         )
+res = (res + flange.translate((0, extra_dist/2, 0)))
+
+msyo = 3.5 # mouting screw y offset
+
 res = (res
        # mounting holes
        .workplaneFromTagged("bot")
-       .transformed(offset=(msox, msoy, cutout_depth))
+       .transformed(offset=(msox, msoy + extra_dist + msyo, cutout_depth))
        .cskHole(msd, mcsd, 82)
        .workplaneFromTagged("bot")
-       .transformed(offset=(msox - w1*2*0.6, -msoy, cutout_depth))
+       .transformed(offset=(msox - w1*2*0.6, -msoy + extra_dist + msyo, cutout_depth))
        .cskHole(msd, mcsd, 82)
        .workplaneFromTagged("bot")
-       .transformed(offset=(-msox, -msoy, cutout_depth))
+       .transformed(offset=(-msox, -msoy + extra_dist + msyo, cutout_depth))
        .cskHole(msd, mcsd, 82)
        .workplaneFromTagged("bot")
-       .transformed(offset=(-msox + w1*2*0.6, msoy, cutout_depth))
+       .transformed(offset=(-msox + w1*2*0.6, msoy + extra_dist + msyo, cutout_depth))
        .cskHole(msd, mcsd, 82)
        # screw holes
        .workplaneFromTagged("bot")
@@ -106,3 +118,4 @@ res = (res
 
 show_object(res)
 #show_object(cutout)
+#show_object(flange)
