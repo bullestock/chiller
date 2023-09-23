@@ -131,6 +131,26 @@ static int test_temp(int, char**)
     return 0;
 }
 
+static int test_flow(int, char**)
+{
+    printf("Running flow sensor test\n");
+
+    for (int n = 0; n < 10; ++n)
+    {
+        vTaskDelay(500/portTICK_PERIOD_MS);
+        const auto flow = gpio_get_level(PIN_FLOW);
+        printf("Flow pin %d\n", flow);
+    }
+    for (int n = 0; n < 10; ++n)
+    {
+        vTaskDelay(500/portTICK_PERIOD_MS);
+        const auto flow = get_and_reset_flow_pulses();
+        printf("Flow %d\n", flow);
+    }
+    
+    return 0;
+}
+
 static int reboot(int, char**)
 {
     printf("Reboot...\n");
@@ -207,7 +227,7 @@ void run_console()
     ESP_ERROR_CHECK(esp_console_cmd_register(&toggle_compressor_relay_cmd));
 
     const esp_console_cmd_t test_display_cmd = {
-        .command = "display",
+        .command = "test_display",
         .help = "Test display",
         .hint = nullptr,
         .func = &test_display,
@@ -216,13 +236,22 @@ void run_console()
     ESP_ERROR_CHECK(esp_console_cmd_register(&test_display_cmd));
 
     const esp_console_cmd_t test_temp_cmd = {
-        .command = "temp",
+        .command = "test_temp",
         .help = "Test temperature sensors",
         .hint = nullptr,
         .func = &test_temp,
         .argtable = nullptr
     };
     ESP_ERROR_CHECK(esp_console_cmd_register(&test_temp_cmd));
+
+    const esp_console_cmd_t test_flow_cmd = {
+        .command = "test_flow",
+        .help = "Test flowerature sensors",
+        .hint = nullptr,
+        .func = &test_flow,
+        .argtable = nullptr
+    };
+    ESP_ERROR_CHECK(esp_console_cmd_register(&test_flow_cmd));
 
     const esp_console_cmd_t reboot_cmd = {
         .command = "reboot",

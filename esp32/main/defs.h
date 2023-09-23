@@ -20,7 +20,7 @@ constexpr const auto PIN_RELAY_COMP = (gpio_num_t) 16;
 constexpr const auto PIN_RELAY_RDY = (gpio_num_t) 21;
 constexpr const auto PIN_BUZZER = (gpio_num_t) 27;
 constexpr const auto PIN_FAN = (gpio_num_t) 26;
-constexpr const auto PIN_FLOW = (gpio_num_t) 39;
+constexpr const auto PIN_FLOW = (gpio_num_t) 35;
 
 constexpr const char* TAG = "CHLR";
 
