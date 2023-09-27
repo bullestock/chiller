@@ -223,7 +223,12 @@
     "equivalence_files": []
   },
   "erc": {
-    "erc_exclusions": [],
+    "erc_exclusions": [
+      "pin_not_connected|495300|622300|41e26b9c-e087-4be2-8b71-7e2636cc0372|00000000-0000-0000-0000-000000000000|||",
+      "pin_not_connected|571500|571500|14c4d233-45a0-45d6-b71b-de4a9514b427|00000000-0000-0000-0000-000000000000|||",
+      "pin_not_connected|571500|673100|de83aed4-0bc7-4411-b7b0-a57be818438b|00000000-0000-0000-0000-000000000000|||",
+      "pin_not_driven|495300|622300|41e26b9c-e087-4be2-8b71-7e2636cc0372|00000000-0000-0000-0000-000000000000|/212a0d71-cc7b-49f8-b4ca-a935e5355dca/e041e33b-a2e4-4dae-9a77-f6c328caa3c7|/212a0d71-cc7b-49f8-b4ca-a935e5355dca/e041e33b-a2e4-4dae-9a77-f6c328caa3c7|"
+    ],
     "meta": {
       "version": 0
     },
@@ -576,6 +581,7 @@
       "operating_point_overlay_i_range": "~A",
       "operating_point_overlay_v_precision": 3,
       "operating_point_overlay_v_range": "~V",
+      "overbar_offset_ratio": 1.23,
       "pin_symbol_size": 25.0,
       "text_offset_ratio": 0.15
     },
