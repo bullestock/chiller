@@ -7,39 +7,16 @@
 
 #include "console.h"
 #include "defs.h"
+#include "display.h"
 #include "hw.h"
 
 #include <TFT_eSPI.h>
 
-using Thresholds = std::vector<std::pair<float, uint16_t>>;
-
-static constexpr const auto small_font = &FreeSans12pt7b;
-static constexpr const auto medium_font = &FreeSansBold18pt7b;
-static constexpr const auto large_font = &FreeSansBold24pt7b;
-static constexpr const int GFXFF = 1;
-
-void set_status(TFT_eSPI& tft, const std::string& status, uint16_t colour = TFT_WHITE)
-{
-    static std::string last_status;
-
-    if (status != last_status)
-    {
-        tft.fillRect(TFT_HEIGHT/2, TFT_WIDTH/2, TFT_HEIGHT/2, TFT_WIDTH/2, TFT_BLACK);
-        last_status = status;
-    }
-    tft.setTextColor(colour);
-    tft.setFreeFont(large_font);
-    const auto w = tft.textWidth(status.c_str(), GFXFF);
-    const auto x = TFT_HEIGHT/2 + TFT_HEIGHT/4 - w/2;
-    const auto y = TFT_HEIGHT/2 - 20;
-    tft.drawString(status.c_str(), x, y, GFXFF);
-}
-
-void fatal_error(TFT_eSPI& tft, const std::string& error)
+void fatal_error(Display& display, const std::string& error)
 {
     printf("FATAL: %s\n", error.c_str());
     const auto msg = "ERROR:\n" + error;
-    set_status(tft, msg, TFT_RED);
+    display.set_status(msg, TFT_RED);
     set_ready(false);
     
     while (1)
@@ -53,67 +30,6 @@ void fatal_error(TFT_eSPI& tft, const std::string& error)
         set_buzzer(0);
         vTaskDelay(320/portTICK_PERIOD_MS);
     }
-}
-
-void set_colour(TFT_eSPI& tft, float value,
-                const Thresholds& thresholds,
-                bool invert)
-{
-    uint16_t colour = TFT_WHITE;
-    if (invert)
-        for (auto it = thresholds.rbegin(); it != thresholds.rend(); ++it)
-        {
-            if (value <= it->first)
-                colour = it->second;
-        }
-    else
-        for (const auto& t : thresholds)
-        {
-            if (value >= t.first)
-                colour = t.second;
-        }
-    tft.setTextColor(colour);
-}
-
-// +---+---+
-// | 0 | 1 |
-// +---+---+
-// | 2 | 3 |
-// +---+---+
-void show_value(TFT_eSPI& tft, int quadrant, float value,
-                int nof_int_digits, int nof_dec_digits,
-                const Thresholds& thresholds, bool invert = false)
-{
-    char buf[20];
-    const int int_val = static_cast<int>(value);
-    sprintf(buf, "%*d", nof_int_digits, int_val);
-    set_colour(tft, value, thresholds, invert);
-    // TODO: Use text width
-    const int x = (quadrant & 1 ? TFT_HEIGHT/2 : 0) + TFT_HEIGHT/4 - 100;
-    const int y = (quadrant > 1 ? TFT_WIDTH/2 : 0) + TFT_WIDTH/8;
-    tft.drawString(buf, x, y, 8);
-    if (nof_dec_digits)
-    {
-        const int decimal_digits = std::round((value - int_val)*std::pow(10, nof_dec_digits));
-        sprintf(buf, ".%0*d", nof_dec_digits, decimal_digits);
-        tft.drawString(buf, x + 102, y + 38, 6);
-    }
-}
-
-void show_temperature(TFT_eSPI& tft, int quadrant, float temp,
-                      const Thresholds& thresholds)
-{
-    show_value(tft, quadrant, temp, 2, 1, thresholds);
-}
-
-void show_flow(TFT_eSPI& tft, int liters_per_hour)
-{
-    static Thresholds thresholds;
-    if (thresholds.empty())
-    {
-        thresholds.push_back(std::make_pair(MIN_FLOW, TFT_RED));
-    }
-    show_value(tft, 2, liters_per_hour, 3, 0, thresholds, true);
 }
 
 static float temp_readings[2][TEMP_AVERAGES];
@@ -142,6 +58,10 @@ void app_main()
 {
     init_hardware();
 
+    TFT_eSPI tft;
+    
+    Display display(tft);
+
     printf("Chiller v %s\n", VERSION);
 
     printf("\n\nPress a key to enter console\n");
@@ -158,17 +78,8 @@ void app_main()
     if (debug)
         run_console();        // never returns
 
-    TFT_eSPI tft;
-    tft.init();
-    tft.setRotation(1);
-    tft.fillScreen(TFT_BLACK);
-    tft.setFreeFont(small_font);
-    tft.setTextColor(TFT_CYAN);
-    tft.drawString("Water", 85, 0, GFXFF);
-    tft.drawString("Compressor", 295, 0, GFXFF);
-    tft.drawString("Flow", 90, TFT_WIDTH/2, GFXFF);
-    
     printf("\nStarting application\n");
+    display.show_legends();
 
     unsigned int liters_per_hour = 0;
     bool compressor_on = false;
@@ -194,14 +105,14 @@ void app_main()
 
         const auto temps = read_temperatures();
         if (std::isnan(temps.water))
-            fatal_error(tft, "Water temperature sensor malfunction");
+            fatal_error(display, "Water temperature sensor malfunction");
         if (std::isnan(temps.compressor))
-            fatal_error(tft, "Water temperature sensor malfunction");
+            fatal_error(display, "Water temperature sensor malfunction");
 
         auto temp = add_temp_reading(0, temps.water);
-        show_temperature(tft, 0, temp, water_thresholds);
+        display.show_temperature(0, temp, water_thresholds);
         temp = add_temp_reading(1, temps.compressor);
-        show_temperature(tft, 1, temp, compressor_thresholds);
+        display.show_temperature(1, temp, compressor_thresholds);
     
         //
         //-- Display flow (once every second)
@@ -223,7 +134,7 @@ void app_main()
         }
 #endif
         
-        show_flow(tft, liters_per_hour);
+        display.show_flow(liters_per_hour);
 
         //
         //-- Do checks
@@ -337,7 +248,11 @@ void app_main()
         else
             set_buzzer(0);
 
-        set_status(tft, state, state_colour);
+        display.set_status(state, state_colour);
         vTaskDelay(10);
     }
 }
+
+// Local Variables:
+// compile-command: "cd .. && idf.py build"
+// End:

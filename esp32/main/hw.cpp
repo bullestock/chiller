@@ -178,3 +178,7 @@ Temperatures read_temperatures()
     }
     return values;
 }
+
+// Local Variables:
+// compile-command: "cd .. && idf.py build"
+// End:
