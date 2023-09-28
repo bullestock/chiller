@@ -78,7 +78,7 @@ void init_hardware()
     pcnt_counter_resume(PCNT_UNIT_0);
 }
 
-void detect_ds18b20()
+void detect_ds18b20(Display& display)
 {
     owb = owb_rmt_initialize(&rmt_driver_info, PIN_TEMP,
                              RMT_CHANNEL_1, RMT_CHANNEL_0);
@@ -97,13 +97,13 @@ void detect_ds18b20()
         device_rom_codes[num_ds18b20_devices] = search_state.rom_code;
         ++num_ds18b20_devices;
         if (num_ds18b20_devices > NUM_DS18B20_DEVICES)
-            fatal_error("Too many DS18B20 devices");
+            fatal_error(display, "Too many\nDS18B20 devices");
         owb_search_next(owb, &search_state, &found);
     }
     printf("Found %d DS18B20 device%s\n", num_ds18b20_devices, num_ds18b20_devices == 1 ? "" : "s");
 #ifndef SIMULATE
     if (num_ds18b20_devices != NUM_DS18B20_DEVICES)
-        fatal_error("DS18B20 device(s) missing");
+        fatal_error(display, "DS18B20 device(s)\nmissing");
 #endif
     for (int i = 0; i < num_ds18b20_devices; ++i)
     {

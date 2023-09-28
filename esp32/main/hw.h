@@ -1,7 +1,7 @@
 #pragma once
 
 void init_hardware();
-void detect_ds18b20();
+void detect_ds18b20(class Display& display);
 
 void set_compressor(bool on);
 void set_ready(bool on);

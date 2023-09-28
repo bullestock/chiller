@@ -1,3 +1,5 @@
 #pragma once
 
-void fatal_error(const char* msg);
+#include <string>
+
+void fatal_error(class Display& display, const std::string& error);

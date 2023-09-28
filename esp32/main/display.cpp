@@ -104,6 +104,23 @@ void Display::set_status(const std::string& status, uint16_t colour)
     }
 }
 
+void Display::show_fatal_error(const std::string& error)
+{
+    const auto lines = split(error);
+    tft.setTextColor(TFT_RED);
+    tft.setFreeFont(large_font);
+    tft.fillScreen(TFT_BLACK);
+
+    auto y = TFT_WIDTH/2 - lines.size()/2*large_textheight;
+    for (const auto& line : lines)
+    {
+        const auto w = tft.textWidth(line.c_str(), GFXFF);
+        const auto x = TFT_HEIGHT/2 - w/2;
+        tft.drawString(line.c_str(), x, y, GFXFF);
+        y += large_textheight;
+    }
+}
+
 void Display::set_colour(float value,
                          const Thresholds& thresholds,
                          bool invert)

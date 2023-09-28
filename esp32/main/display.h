@@ -14,6 +14,8 @@ public:
 
     void show_legends();
 
+    void show_fatal_error(const std::string& error);
+    
     void set_status(const std::string& status, uint16_t colour = TFT_WHITE);
 
     void show_temperature(int quadrant, float temp,

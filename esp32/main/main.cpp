@@ -9,28 +9,9 @@
 #include "defs.h"
 #include "display.h"
 #include "hw.h"
+#include "util.h"
 
 #include <TFT_eSPI.h>
-
-void fatal_error(Display& display, const std::string& error)
-{
-    printf("FATAL: %s\n", error.c_str());
-    const auto msg = "ERROR:\n" + error;
-    display.set_status(msg, TFT_RED);
-    set_ready(false);
-    
-    while (1)
-    {
-        set_buzzer(1);
-        vTaskDelay(40/portTICK_PERIOD_MS);
-        set_buzzer(0);
-        vTaskDelay(80/portTICK_PERIOD_MS);
-        set_buzzer(1);
-        vTaskDelay(160/portTICK_PERIOD_MS);
-        set_buzzer(0);
-        vTaskDelay(320/portTICK_PERIOD_MS);
-    }
-}
 
 static float temp_readings[2][TEMP_AVERAGES];
 
@@ -80,7 +61,7 @@ void app_main()
 
     printf("\nStarting application\n");
     
-    detect_ds18b20();
+    detect_ds18b20(display);
     display.show_legends();
 
     unsigned int liters_per_hour = 0;
@@ -107,9 +88,9 @@ void app_main()
 
         const auto temps = read_temperatures();
         if (std::isnan(temps.water))
-            fatal_error(display, "Water temperature sensor malfunction");
+            fatal_error(display, "Water\ntemperature\nsensor\nmalfunction");
         if (std::isnan(temps.compressor))
-            fatal_error(display, "Water temperature sensor malfunction");
+            fatal_error(display, "Compressor\ntemperature\nsensor\nmalfunction");
 
         auto temp = add_temp_reading(0, temps.water);
         display.show_temperature(0, temp, water_thresholds);
