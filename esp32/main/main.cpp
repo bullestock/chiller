@@ -76,9 +76,11 @@ void app_main()
         vTaskDelay(100/portTICK_PERIOD_MS);
     }
     if (debug)
-        run_console();        // never returns
+        run_console(display);        // never returns
 
     printf("\nStarting application\n");
+    
+    detect_ds18b20();
     display.show_legends();
 
     unsigned int liters_per_hour = 0;

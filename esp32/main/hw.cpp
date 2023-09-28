@@ -31,7 +31,6 @@ void init_hardware()
     io_conf.mode = GPIO_MODE_INPUT;
     // bit mask of the pins that you want to set
     io_conf.pin_bit_mask = (1ULL << PIN_DISP_SDI) |
-       (1ULL << PIN_EXT_1) |
        (1ULL << PIN_EXT_2) |
        (1ULL << PIN_LEVEL) |
        (1ULL << PIN_TEMP) |
@@ -49,7 +48,7 @@ void init_hardware()
        (1ULL << PIN_DISP_SDO) |
        (1ULL << PIN_RELAY_COMP) |
        (1ULL << PIN_RELAY_RDY) |
-       (1ULL << PIN_BUZZER) |
+       (1ULL << PIN_EXT_1) |
        (1ULL << PIN_FAN);
     io_conf.pull_down_en = GPIO_PULLDOWN_DISABLE;
     io_conf.pull_up_en = GPIO_PULLUP_DISABLE;
@@ -77,8 +76,6 @@ void init_hardware()
     pcnt_set_filter_value(PCNT_UNIT_0, 100);
     pcnt_filter_enable(PCNT_UNIT_0);
     pcnt_counter_resume(PCNT_UNIT_0);
-    
-    detect_ds18b20();
 }
 
 void detect_ds18b20()
@@ -131,7 +128,7 @@ void set_ready(bool on)
 
 void set_buzzer(bool on)
 {
-    ESP_ERROR_CHECK(gpio_set_level(PIN_BUZZER, on));
+    ESP_ERROR_CHECK(gpio_set_level(PIN_EXT_1, on));
 }
 
 void set_fan(bool on)

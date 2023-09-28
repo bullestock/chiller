@@ -30,6 +30,8 @@ private:
                     int nof_int_digits, int nof_dec_digits,
                     const Thresholds& thresholds, bool invert = false);
 
+    void show_legend(int quadrant, const std::string& legend);
+    
     static constexpr const int NOF_QUADRANTS = 4;
 
     TFT_eSPI& tft;
@@ -37,5 +39,5 @@ private:
     int medium_textheight = 0;
     int large_textheight = 0;
     std::string last_status;
-    std::string last_value[NOF_QUADRANTS];
+    float last_value[NOF_QUADRANTS];
 };

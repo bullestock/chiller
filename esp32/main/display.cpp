@@ -6,10 +6,14 @@ static constexpr const auto small_font = &FreeSans12pt7b;
 static constexpr const auto medium_font = &FreeSansBold18pt7b;
 static constexpr const auto large_font = &FreeSansBold24pt7b;
 static constexpr const int GFXFF = 1;
+static constexpr const int LEGEND_HEIGHT = 22;
 
 Display::Display(TFT_eSPI& tft)
     : tft(tft)
 {
+    for (int i = 0; i < NOF_QUADRANTS; ++i)
+        last_value[i] = 0;
+
     tft.init();
     tft.setRotation(1);
     tft.fillScreen(TFT_BLACK);
@@ -33,47 +37,98 @@ Display::Display(TFT_eSPI& tft)
     tft.drawString(text.c_str(), x, large_textheight*3, GFXFF);
 }
 
+/// Get upper left corner pixel coordinates of a quadrant
+static std::pair<int, int> get_quadrant_ul(int quadrant)
+{
+    return std::make_pair(quadrant & 1 ? TFT_HEIGHT/2 : 0,
+                          quadrant > 1 ? TFT_WIDTH/2 : 0);
+}
+
 void Display::show_legends()
 {
     tft.fillScreen(TFT_BLACK);
-    tft.setFreeFont(small_font);
     tft.setTextColor(TFT_CYAN);
-    tft.drawString("Water", 85, 0, GFXFF);
-    tft.drawString("Compressor", 295, 0, GFXFF);
-    tft.drawString("Flow", 90, TFT_WIDTH/2, GFXFF);
+    show_legend(0, "Water");
+    show_legend(1, "Compressor");
+    show_legend(2, "Flow");
+}
+
+void Display::show_legend(int quadrant, const std::string& legend)
+{
+    tft.setFreeFont(small_font);
+    const auto ul = get_quadrant_ul(quadrant);
+    const auto w = tft.textWidth(legend.c_str(), GFXFF);
+    const int x = ul.first + (TFT_HEIGHT/2 - w)/2;
+    const int y = ul.second;
+    tft.drawString(legend.c_str(), x, y, GFXFF);
+
+}
+
+static std::vector<std::string> split(const std::string& s)
+{
+    std::vector<std::string> v;
+    std::string::size_type curpos = 0;
+    while (curpos < s.size())
+    {
+        const auto end = s.find('\n', curpos);
+        if (end == std::string::npos)
+        {
+            // Last line
+            v.push_back(s.substr(curpos));
+            return v;
+        }
+        const auto line = s.substr(curpos, end - curpos);
+        v.push_back(line);
+        curpos = end + 1;
+    }
+    return v;
 }
 
 void Display::set_status(const std::string& status, uint16_t colour)
 {
-    if (status != last_status)
-    {
-        tft.fillRect(TFT_HEIGHT/2, TFT_WIDTH/2, TFT_HEIGHT/2, TFT_WIDTH/2, TFT_BLACK);
-        last_status = status;
-    }
+    if (status == last_status)
+        return;
+    last_status = status;
+
+    const auto lines = split(status);
     tft.setTextColor(colour);
-    tft.setFreeFont(large_font);
-    const auto w = tft.textWidth(status.c_str(), GFXFF);
-    const auto x = TFT_HEIGHT/2 + TFT_HEIGHT/4 - w/2;
-    const auto y = TFT_HEIGHT/2 - 20;
-    tft.drawString(status.c_str(), x, y, GFXFF);
+    tft.setFreeFont(medium_font);
+    tft.fillRect(TFT_HEIGHT/2, TFT_WIDTH/2, TFT_HEIGHT/2, TFT_WIDTH/2, TFT_BLACK);
+    auto y = TFT_WIDTH/2 + TFT_WIDTH/4 - lines.size()/2*medium_textheight;
+    for (const auto& line : lines)
+    {
+        const auto w = tft.textWidth(line.c_str(), GFXFF);
+        const auto x = TFT_HEIGHT/2 + TFT_HEIGHT/4 - w/2;
+        tft.drawString(line.c_str(), x, y, GFXFF);
+        y += medium_textheight;
+    }
 }
 
 void Display::set_colour(float value,
                          const Thresholds& thresholds,
                          bool invert)
 {
+    printf("set_colour: %f\n", value);
     uint16_t colour = TFT_WHITE;
     if (invert)
         for (auto it = thresholds.rbegin(); it != thresholds.rend(); ++it)
         {
+            printf("invert: th %f\n", it->first);
             if (value <= it->first)
+            {
                 colour = it->second;
+                printf("using %d\n", colour);
+            }
         }
     else
         for (const auto& t : thresholds)
         {
+            printf("th %f\n", t.first);
             if (value >= t.first)
+            {
                 colour = t.second;
+                printf("using %d\n", colour);
+            }
         }
     tft.setTextColor(colour);
 }
@@ -87,28 +142,30 @@ void Display::show_value(int quadrant, float value,
                          int nof_int_digits, int nof_dec_digits,
                          const Thresholds& thresholds, bool invert)
 {
-    char buf[20];
+    if (value == last_value[quadrant])
+        return;
+    last_value[quadrant] = value;
+    const auto ul = get_quadrant_ul(quadrant);
+    char int_buf[20];
     const int int_val = static_cast<int>(value);
-    sprintf(buf, "%*d", nof_int_digits, int_val);
-    const std::string svalue(buf);
-    if (svalue != last_value[quadrant])
-    {
-        const int x = quadrant & 1 ? TFT_HEIGHT/2 : 0;
-        const int y = quadrant > 1 ? TFT_WIDTH/2 : 0;
-        tft.fillRect(x, y, TFT_HEIGHT/2, TFT_WIDTH/2, TFT_BLACK);
-        last_value[quadrant] = svalue;
-    }
-    set_colour(value, thresholds, invert);
-    // TODO: Use text width
-    const int x = (quadrant & 1 ? TFT_HEIGHT/2 : 0) + TFT_HEIGHT/4 - 100;
-    const int y = (quadrant > 1 ? TFT_WIDTH/2 : 0) + TFT_WIDTH/8;
-    tft.drawString(buf, x, y, 8);
+    sprintf(int_buf, "%*d", nof_int_digits, int_val);
+    int w = tft.textWidth(int_buf, 8);
+    const int int_w = w;
+    char dec_buf[20];
     if (nof_dec_digits)
     {
         const int decimal_digits = std::round((value - int_val)*std::pow(10, nof_dec_digits));
-        sprintf(buf, ".%0*d", nof_dec_digits, decimal_digits);
-        tft.drawString(buf, x + 102, y + 38, 6);
+        sprintf(dec_buf, ".%0*d", nof_dec_digits, decimal_digits);
+        w += tft.textWidth(dec_buf, 6);
     }
+    set_colour(value, thresholds, invert);
+    tft.fillRect(ul.first, ul.second + LEGEND_HEIGHT, TFT_HEIGHT/2, TFT_WIDTH/2 - LEGEND_HEIGHT, TFT_BLACK);
+
+    const int x = ul.first + (TFT_HEIGHT/2 - w)/2;
+    const int y = ul.second + TFT_WIDTH/8;
+    tft.drawString(int_buf, x, y, 8);
+    if (nof_dec_digits)
+        tft.drawString(dec_buf, x + int_w, y + 38, 6);
 }
 
 void Display::show_temperature(int quadrant, float temp,

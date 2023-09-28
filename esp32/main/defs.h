@@ -12,13 +12,12 @@ constexpr const auto PIN_DISP_CS = (gpio_num_t) 5;
 constexpr const auto PIN_DISP_SCK = (gpio_num_t) 18;
 constexpr const auto PIN_DISP_SDO = (gpio_num_t) 19;
 constexpr const auto PIN_DISP_SDI = (gpio_num_t) 23;
-constexpr const auto PIN_EXT_1 = (gpio_num_t) 26;
-constexpr const auto PIN_EXT_2 = (gpio_num_t) 27;
+constexpr const auto PIN_EXT_1 = (gpio_num_t) 27;
+constexpr const auto PIN_EXT_2 = (gpio_num_t) 26;
 constexpr const auto PIN_LEVEL = (gpio_num_t) 16;
 constexpr const auto PIN_TEMP = (gpio_num_t) 15;
 constexpr const auto PIN_RELAY_COMP = (gpio_num_t) 16;
 constexpr const auto PIN_RELAY_RDY = (gpio_num_t) 21;
-constexpr const auto PIN_BUZZER = (gpio_num_t) 27;
 constexpr const auto PIN_FAN = (gpio_num_t) 26;
 constexpr const auto PIN_FLOW = (gpio_num_t) 35;
 

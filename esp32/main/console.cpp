@@ -1,5 +1,6 @@
 #include "console.h"
 #include "defs.h"
+#include "display.h"
 #include "hw.h"
 
 #include <string>
@@ -18,6 +19,8 @@ static constexpr const int GFXFF = 1;
 #include "linenoise/linenoise.h"
 #include "argtable3/argtable3.h"
 
+static Display* the_display = nullptr;
+
 static int toggle_compressor_relay(int, char**)
 {
     for (int n = 0; n < 10; ++n)
@@ -31,87 +34,42 @@ static int toggle_compressor_relay(int, char**)
     return 0;
 }
 
-static unsigned int rainbow(int value)
-{
-  uint8_t red = 0; // Red is the top 5 bits of a 16 bit colour value
-  uint8_t green = 0;// Green is the middle 6 bits
-  uint8_t blue = 0; // Blue is the bottom 5 bits
-
-  uint8_t quadrant = value / 32;
-
-  if (quadrant == 0) {
-    blue = 31;
-    green = 2 * (value % 32);
-    red = 0;
-  }
-  if (quadrant == 1) {
-    blue = 31 - (value % 32);
-    green = 63;
-    red = 0;
-  }
-  if (quadrant == 2) {
-    blue = 0;
-    green = 63;
-    red = value % 32;
-  }
-  if (quadrant == 3) {
-    blue = 0;
-    green = 63 - 2 * (value % 32);
-    red = 31;
-  }
-  return (red << 11) + (green << 5) + blue;
-}
-
-static long map(long x, long in_min, long in_max, long out_min, long out_max)
-{
-  return (x - in_min) * (out_max - out_min) / (in_max - in_min) + out_min;
-}
+static const char* statuses[] = {
+    "Idle",
+    "Fan on",
+    "Cooling",
+    "Flow\ntoo low",
+    "Too hot,\nlow flow",
+    "Too hot",
+    "Water hot!",
+    "Compressor\nhot!",
+    "ERROR:\nBad stuff",
+};
 
 static int test_display(int, char**)
 {
     printf("Running display test\n");
 
-    TFT_eSPI tft;
-    tft.init();
-    tft.setRotation(1);
+    Thresholds water_thresholds;
+    water_thresholds.push_back(std::make_pair(WATER_WARN_TEMP, TFT_YELLOW));
+    water_thresholds.push_back(std::make_pair(WATER_HOT_TEMP, TFT_RED));
+    Thresholds compressor_thresholds;
+    compressor_thresholds.push_back(std::make_pair(COMPRESSOR_WARN_TEMP, TFT_YELLOW));
+    compressor_thresholds.push_back(std::make_pair(COMPRESSOR_HOT_TEMP, TFT_RED));
     
-    tft.fillScreen(TFT_BLACK);
-#if 1
-    // Mandelbrot
-    tft.startWrite();
-    const int MAX_X = 320;
-    const int MAX_Y = 480;
-    for (int px = 1; px < MAX_X; px++)
+    the_display->show_legends();
+    vTaskDelay(1000 / portTICK_PERIOD_MS);
+    int index = 0;
+    for (int i = 0; i < 10; ++i)
     {
-        for (int py = 0; py < MAX_Y; py++)
-        {
-            float x0 = (map(px, 0, MAX_X, -250000/2, -242500/2)) / 100000.0;
-            float yy0 = (map(py, 0, MAX_Y, -75000/4, -61000/4)) / 100000.0; 
-            float xx = 0.0;
-            float yy = 0.0;
-            int iteration = 0;
-            int max_iteration = 128;
-            while (((xx * xx + yy * yy) < 4) &&
-                   (iteration < max_iteration))
-            {
-                float xtemp = xx * xx - yy * yy + x0;
-                yy = 2 * xx * yy + yy0;
-                xx = xtemp;
-                iteration++;
-            }
-            int color = rainbow((3*iteration+64)%128);
-            tft.drawPixel(px, py, color);
-        }
+        the_display->show_temperature(0, (i+3)*7.89, water_thresholds);
+        the_display->show_temperature(1, (i+3)*8.90, compressor_thresholds);
+        the_display->show_flow(23+i*13);
+        the_display->set_status(statuses[index++]);
+        if (index >= sizeof(statuses)/sizeof(statuses[0]))
+            index = 0;
+        vTaskDelay(1000 / portTICK_PERIOD_MS);
     }
-#else
-    tft.setFreeFont(&FreeSansBold24pt7b);
-    tft.drawString("42.1", 0, 0, GFXFF);
-    tft.setFreeFont(&FreeSansBold18pt7b);
-    tft.drawString("Compressor", 0, 50, GFXFF);
-    tft.setFreeFont(&FreeSansBold12pt7b);
-    tft.drawString("Compressor", 0, 100, GFXFF);
-#endif
-    tft.endWrite();
 
     return 0;
 }
@@ -211,8 +169,10 @@ void initialize_console()
     linenoiseHistorySetMaxLen(100);
 }
 
-void run_console()
+void run_console(Display& display)
 {
+    the_display = &display;
+    
     initialize_console();
 
     esp_console_register_help_command();
@@ -262,7 +222,7 @@ void run_console()
     };
     ESP_ERROR_CHECK(esp_console_cmd_register(&reboot_cmd));
     
-    const char* prompt = LOG_COLOR_I "bigbro> " LOG_RESET_COLOR;
+    const char* prompt = LOG_COLOR_I "chiller> " LOG_RESET_COLOR;
     int probe_status = linenoiseProbe();
     if (probe_status)
     {
