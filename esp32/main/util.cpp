@@ -15,12 +15,12 @@ void fatal_error(Display& display, const std::string& error)
     while (1)
     {
         set_buzzer(1);
-        vTaskDelay(40/portTICK_PERIOD_MS);
+        vTaskDelay(1000/portTICK_PERIOD_MS);
         set_buzzer(0);
-        vTaskDelay(80/portTICK_PERIOD_MS);
+        vTaskDelay(800/portTICK_PERIOD_MS);
         set_buzzer(1);
-        vTaskDelay(160/portTICK_PERIOD_MS);
+        vTaskDelay(2000/portTICK_PERIOD_MS);
         set_buzzer(0);
-        vTaskDelay(320/portTICK_PERIOD_MS);
+        vTaskDelay(800/portTICK_PERIOD_MS);
     }
 }
