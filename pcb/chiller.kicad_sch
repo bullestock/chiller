@@ -6165,23 +6165,6 @@
     )
   )
 
-  (sheet (at 252.73 107.95) (size 19.05 13.97) (fields_autoplaced)
-    (stroke (width 0.1524) (type solid))
-    (fill (color 0 0 0 0.0000))
-    (uuid e041e33b-a2e4-4dae-9a77-f6c328caa3c7)
-    (property "Sheetname" "Fan MOSFET" (at 252.73 107.2384 0)
-      (effects (font (size 1.27 1.27)) (justify left bottom))
-    )
-    (property "Sheetfile" "fan.kicad_sch" (at 252.73 122.5046 0)
-      (effects (font (size 1.27 1.27)) (justify left top))
-    )
-    (instances
-      (project "chiller"
-        (path "/212a0d71-cc7b-49f8-b4ca-a935e5355dca" (page "2"))
-      )
-    )
-  )
-
   (sheet_instances
     (path "/" (page "1"))
   )
