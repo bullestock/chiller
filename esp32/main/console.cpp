@@ -109,6 +109,35 @@ static int test_flow(int, char**)
     return 0;
 }
 
+static int test_fan(int, char**)
+{
+    printf("Running fan test\n");
+
+    for (int n = 0; n < 10; ++n)
+    {
+        vTaskDelay(5000/portTICK_PERIOD_MS);
+        set_fan(true);
+        vTaskDelay(5000/portTICK_PERIOD_MS);
+        set_fan(false);
+    }
+    printf("done\n");
+    return 0;
+}
+
+static int test_ready(int, char**)
+{
+    printf("Running ready relay test\n");
+    for (int n = 0; n < 10; ++n)
+    {
+        vTaskDelay(2000/portTICK_PERIOD_MS);
+        set_ready(true);
+        vTaskDelay(2000/portTICK_PERIOD_MS);
+        set_ready(false);
+    }
+    printf("done\n");
+    return 0;
+}
+ 
 static int reboot(int, char**)
 {
     printf("Reboot...\n");
@@ -212,6 +241,24 @@ void run_console(Display& display)
         .argtable = nullptr
     };
     ESP_ERROR_CHECK(esp_console_cmd_register(&test_flow_cmd));
+
+    const esp_console_cmd_t test_fan_cmd = {
+        .command = "test_fan",
+        .help = "Test fan control",
+        .hint = nullptr,
+        .func = &test_fan,
+        .argtable = nullptr
+    };
+    ESP_ERROR_CHECK(esp_console_cmd_register(&test_fan_cmd));
+
+    const esp_console_cmd_t test_ready_cmd = {
+        .command = "test_ready",
+        .help = "Test ready relay",
+        .hint = nullptr,
+        .func = &test_ready,
+        .argtable = nullptr
+    };
+    ESP_ERROR_CHECK(esp_console_cmd_register(&test_ready_cmd));
 
     const esp_console_cmd_t reboot_cmd = {
         .command = "reboot",
