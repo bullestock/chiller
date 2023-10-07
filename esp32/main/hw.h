@@ -17,3 +17,7 @@ struct Temperatures
 };
 
 Temperatures read_temperatures();
+
+bool read_current(int &current);
+
+int read_level();

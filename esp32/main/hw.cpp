@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "esp_log.h"
+#include <driver/adc.h>
 #include <driver/pcnt.h>
 #include "owb.h"
 #include "owb_rmt.h"
@@ -18,10 +19,11 @@ const auto RESOLUTION = DS18B20_RESOLUTION_12_BIT;
 #include <freertos/FreeRTOS.h>
 #include <driver/ledc.h>
 
-OneWireBus* owb = nullptr;
-owb_rmt_driver_info rmt_driver_info;
-int num_ds18b20_devices = 0;
-DS18B20_Info* ds18b20_devices[NUM_DS18B20_DEVICES] = {0};
+static OneWireBus* owb = nullptr;
+static owb_rmt_driver_info rmt_driver_info;
+static int num_ds18b20_devices = 0;
+static DS18B20_Info* ds18b20_devices[NUM_DS18B20_DEVICES] = {0};
+static adc_oneshot_unit_handle_t adc1_handle;
 
 void init_hardware()
 {
@@ -76,6 +78,23 @@ void init_hardware()
     pcnt_set_filter_value(PCNT_UNIT_0, 100);
     pcnt_filter_enable(PCNT_UNIT_0);
     pcnt_counter_resume(PCNT_UNIT_0);
+
+    adc_oneshot_unit_init_cfg_t init_config1 = {
+        .unit_id = ADC_UNIT_1,
+#if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 1, 0)
+        .clk_src = static_cast<adc_oneshot_clk_src_t>(0),
+#endif
+        .ulp_mode = ADC_ULP_MODE_DISABLE,
+    };
+    ESP_ERROR_CHECK(adc_oneshot_new_unit(&init_config1, &adc1_handle));
+
+    adc_oneshot_chan_cfg_t config = {
+        .atten = ADC_ATTEN_DB_11,
+        .bitwidth = ADC_BITWIDTH_DEFAULT,
+    };
+    ESP_ERROR_CHECK(adc_oneshot_config_channel(adc1_handle,
+                                               static_cast<adc_channel_t>(3), // SensVN
+                                               &config));
 }
 
 void detect_ds18b20(Display& display)
@@ -174,6 +193,18 @@ Temperatures read_temperatures()
         values.compressor = readings[1];
     }
     return values;
+}
+
+int read_level()
+{
+    return gpio_get_level(PIN_LEVEL);
+}
+
+bool read_current(int &current)
+{
+    return adc_oneshot_read(adc1_handle,
+                            static_cast<adc_channel_t>(3), // SensVN
+                            &current) == ESP_OK;
 }
 
 // Local Variables:

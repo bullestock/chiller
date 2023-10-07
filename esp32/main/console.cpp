@@ -157,6 +157,39 @@ static int test_ready(int, char**)
     return 0;
 }
  
+static int test_level(int, char**)
+{
+    printf("Running level sensor test\n");
+
+    for (int n = 0; n < 10; ++n)
+    {
+        vTaskDelay(500/portTICK_PERIOD_MS);
+        const auto level = read_level();
+        printf("Level %d\n", level);
+    }
+    
+    printf("done\n");
+    return 0;
+}
+ 
+static int test_current(int, char**)
+{
+    printf("Running current sensor test\n");
+
+    for (int n = 0; n < 10; ++n)
+    {
+        vTaskDelay(500/portTICK_PERIOD_MS);
+        int current = 0;
+        if (read_current(current))
+            printf("Current %d\n", current);
+        else
+            printf("Failed to read current\n");
+    }
+    
+    printf("done\n");
+    return 0;
+}
+ 
 static int reboot(int, char**)
 {
     printf("Reboot...\n");
@@ -287,6 +320,24 @@ void run_console(Display& display)
         .argtable = nullptr
     };
     ESP_ERROR_CHECK(esp_console_cmd_register(&test_ready_cmd));
+
+    const esp_console_cmd_t test_level_cmd = {
+        .command = "test_level",
+        .help = "Test level sensor",
+        .hint = nullptr,
+        .func = &test_level,
+        .argtable = nullptr
+    };
+    ESP_ERROR_CHECK(esp_console_cmd_register(&test_level_cmd));
+
+    const esp_console_cmd_t test_current_cmd = {
+        .command = "test_current",
+        .help = "Test current sensor",
+        .hint = nullptr,
+        .func = &test_current,
+        .argtable = nullptr
+    };
+    ESP_ERROR_CHECK(esp_console_cmd_register(&test_current_cmd));
 
     const esp_console_cmd_t reboot_cmd = {
         .command = "reboot",
