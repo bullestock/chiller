@@ -133,7 +133,7 @@ void set_buzzer(bool on)
 
 void set_fan(bool on)
 {
-    ESP_ERROR_CHECK(gpio_set_level(PIN_FAN, on));
+    ESP_ERROR_CHECK(gpio_set_level(PIN_FAN, !on));
 }
 
 int get_and_reset_flow_pulses()

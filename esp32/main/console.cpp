@@ -115,12 +115,12 @@ static int test_fan(int, char**)
 
     for (int n = 0; n < 10; ++n)
     {
-        vTaskDelay(5000/portTICK_PERIOD_MS);
         printf("On\n");
         set_fan(true);
         vTaskDelay(5000/portTICK_PERIOD_MS);
         printf("Off\n");
         set_fan(false);
+        vTaskDelay(5000/portTICK_PERIOD_MS);
     }
     printf("done\n");
     return 0;
@@ -130,14 +130,14 @@ static int test_buzzer(int, char**)
 {
     printf("Running buzzer test\n");
 
-    for (int n = 0; n < 10; ++n)
+    for (int n = 0; n < 5; ++n)
     {
-        vTaskDelay(5000/portTICK_PERIOD_MS);
         printf("On\n");
         set_buzzer(true);
-        vTaskDelay(5000/portTICK_PERIOD_MS);
+        vTaskDelay(1000/portTICK_PERIOD_MS);
         printf("Off\n");
         set_buzzer(false);
+        vTaskDelay(2000/portTICK_PERIOD_MS);
     }
     printf("done\n");
     return 0;
