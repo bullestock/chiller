@@ -116,9 +116,28 @@ static int test_fan(int, char**)
     for (int n = 0; n < 10; ++n)
     {
         vTaskDelay(5000/portTICK_PERIOD_MS);
+        printf("On\n");
         set_fan(true);
         vTaskDelay(5000/portTICK_PERIOD_MS);
+        printf("Off\n");
         set_fan(false);
+    }
+    printf("done\n");
+    return 0;
+}
+
+static int test_buzzer(int, char**)
+{
+    printf("Running buzzer test\n");
+
+    for (int n = 0; n < 10; ++n)
+    {
+        vTaskDelay(5000/portTICK_PERIOD_MS);
+        printf("On\n");
+        set_buzzer(true);
+        vTaskDelay(5000/portTICK_PERIOD_MS);
+        printf("Off\n");
+        set_buzzer(false);
     }
     printf("done\n");
     return 0;
@@ -250,6 +269,15 @@ void run_console(Display& display)
         .argtable = nullptr
     };
     ESP_ERROR_CHECK(esp_console_cmd_register(&test_fan_cmd));
+
+    const esp_console_cmd_t test_buzzer_cmd = {
+        .command = "test_buzzer",
+        .help = "Test buzzer control",
+        .hint = nullptr,
+        .func = &test_buzzer,
+        .argtable = nullptr
+    };
+    ESP_ERROR_CHECK(esp_console_cmd_register(&test_buzzer_cmd));
 
     const esp_console_cmd_t test_ready_cmd = {
         .command = "test_ready",
