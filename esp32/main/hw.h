@@ -20,4 +20,5 @@ Temperatures read_temperatures();
 
 bool read_current(int &current);
 
-int read_level();
+/// true if level OK
+bool read_level();

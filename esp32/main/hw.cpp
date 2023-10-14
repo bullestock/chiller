@@ -195,9 +195,9 @@ Temperatures read_temperatures()
     return values;
 }
 
-int read_level()
+bool read_level()
 {
-    return gpio_get_level(PIN_LEVEL);
+    return !gpio_get_level(PIN_LEVEL);
 }
 
 bool read_current(int &current)

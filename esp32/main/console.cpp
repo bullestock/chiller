@@ -165,7 +165,7 @@ static int test_level(int, char**)
     {
         vTaskDelay(500/portTICK_PERIOD_MS);
         const auto level = read_level();
-        printf("Level %d\n", level);
+        printf("Level %s\n", level ? "OK" : "Low");
     }
     
     printf("done\n");

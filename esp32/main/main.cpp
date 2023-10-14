@@ -5,6 +5,7 @@
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 
+#include "buzzer.h"
 #include "console.h"
 #include "defs.h"
 #include "display.h"
@@ -69,7 +70,6 @@ void app_main()
     bool signal_ok = false;
     int nof_consecutive_errors = 0;
     int nof_consecutive_clears = 0;
-    bool beep_state = false;
     bool first = true;
     bool initializing = true;
     unsigned long last_flow_time = 0;
@@ -80,6 +80,8 @@ void app_main()
     compressor_thresholds.push_back(std::make_pair(COMPRESSOR_WARN_TEMP, TFT_YELLOW));
     compressor_thresholds.push_back(std::make_pair(COMPRESSOR_HOT_TEMP, TFT_RED));
 
+    Buzzer buzzer;
+    
     while (1)
     {
         //
@@ -125,12 +127,12 @@ void app_main()
 
         const auto low_flow = (liters_per_hour < MIN_FLOW);
 
-        if (temps.water < LOW_TEMP*TEMP_SCALE_FACTOR)
+        if (temps.water < LOW_TEMP)
         {
             // Cool enough
             compressor_on = false;
         }
-        else if (temps.water > HIGH_TEMP*TEMP_SCALE_FACTOR)
+        else if (temps.water > HIGH_TEMP)
         {
             // Too warm
             compressor_on = true;
@@ -140,15 +142,17 @@ void app_main()
         if (compressor_on)
             fan_on = true;
         // Keep fan on while compressor is hot
-        else if (temps.compressor > COMPRESSOR_FAN_HIGH_TEMP*TEMP_SCALE_FACTOR)
+        else if (temps.compressor > COMPRESSOR_FAN_HIGH_TEMP)
             fan_on = true;
-        else if (temps.compressor < COMPRESSOR_FAN_LOW_TEMP*TEMP_SCALE_FACTOR)
+        else if (temps.compressor < COMPRESSOR_FAN_LOW_TEMP)
             fan_on = false;
         set_fan(fan_on);
-        const auto is_hot = (temps.water > WATER_HOT_TEMP*TEMP_SCALE_FACTOR) ||
-            (temps.compressor > COMPRESSOR_HOT_TEMP*TEMP_SCALE_FACTOR);
+        const auto is_hot = (temps.water > WATER_HOT_TEMP) ||
+            (temps.compressor > COMPRESSOR_HOT_TEMP);
 
-        const bool current_clear_state = !is_hot && !low_flow;
+        const bool level_ok = read_level();
+
+        const bool current_clear_state = !is_hot && !low_flow && level_ok;
         if (current_clear_state)
         {
             // We are currently OK
@@ -179,8 +183,6 @@ void app_main()
         if (low_flow)
             signal_ok = false;
 
-        // TODO: Level sensor
-
         // Signal status to Lasersaur
         set_ready(signal_ok);
 
@@ -195,43 +197,27 @@ void app_main()
         }
         if (low_flow)
         {
-            state = "Flow too low";
+            state = "Flow\ntoo low";
             state_colour = TFT_RED;
         }
         if (is_hot)
         {
-            if (low_flow)
-                state = "Too hot,\nlow flow";
-            else
-                state = "Too hot";
+            state = "Too hot";
             state_colour = TFT_RED;
         }
-        printf("signal_ok %d initializing %d\n", signal_ok, initializing);
+        if (!level_ok)
+        {
+            state = "Refill\nneeded";
+            state_colour = TFT_RED;
+        }
         // Do not signal 'OK' before we have the required number of OK samples, but do not beep on startup
         if (!signal_ok && !initializing)
-        {
-            set_buzzer(1);
-        }
-        else if (temps.water >= WATER_WARN_TEMP*TEMP_SCALE_FACTOR)
-        {
-            printf("Error: water hot\n");
-            set_buzzer(beep_state);
-            beep_state = !beep_state;
-            state = "Water hot!";
-            state_colour = TFT_RED;
-        }
-        else if (temps.compressor >= COMPRESSOR_WARN_TEMP*TEMP_SCALE_FACTOR)
-        {
-            printf("Error: compressor hot\n");
-            set_buzzer(beep_state);
-            beep_state = !beep_state;
-            state = "Compressor hot!";
-            state_colour = TFT_RED;
-        }
+            buzzer.start();
         else
-            set_buzzer(0);
+            buzzer.stop();
 
         display.set_status(state, state_colour);
+        buzzer.update();
         vTaskDelay(10);
     }
 }

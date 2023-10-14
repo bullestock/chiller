@@ -24,27 +24,25 @@ constexpr const auto PIN_FLOW = (gpio_num_t) 35;
 constexpr const char* TAG = "CHLR";
 
 // High/low temperature for thermostat (degrees)
-constexpr const int LOW_TEMP = 20;
-constexpr const int HIGH_TEMP = 25;
+constexpr const float LOW_TEMP = 20.0;
+constexpr const float HIGH_TEMP = 25.0;
 
 // Warn above this temperature
-constexpr const int WATER_WARN_TEMP = 30;
-constexpr const int COMPRESSOR_WARN_TEMP = 60;
+constexpr const float WATER_WARN_TEMP = 30.0;
+constexpr const float COMPRESSOR_WARN_TEMP = 60.0;
 
 // Halt operation above this temperature
-constexpr const int WATER_HOT_TEMP = 35;
-constexpr const int COMPRESSOR_HOT_TEMP = 70;
+constexpr const float WATER_HOT_TEMP = 35.0;
+constexpr const float COMPRESSOR_HOT_TEMP = 70.0;
 
 // High/low temperature for fan control
-constexpr const int COMPRESSOR_FAN_LOW_TEMP = 28;
-constexpr const int COMPRESSOR_FAN_HIGH_TEMP = 30;
+constexpr const float COMPRESSOR_FAN_LOW_TEMP = 28.0;
+constexpr const float COMPRESSOR_FAN_HIGH_TEMP = 30.0;
 
 // Halt operation if sensor reports less than this temperature
-constexpr const int MIN_ACCEPTABLE_TEMP = 10;
+constexpr const float MIN_ACCEPTABLE_TEMP = 10.0;
 // Halt operation if sensor reports more than this temperature
-constexpr const int MAX_ACCEPTABLE_TEMP = 100;
-// Sensor reports temperature in hundredths of degrees Celsius
-constexpr const int TEMP_SCALE_FACTOR = 100;
+constexpr const float MAX_ACCEPTABLE_TEMP = 100.0;
 
 // Minimum flow (l/h)
 constexpr const int MIN_FLOW = 50;
