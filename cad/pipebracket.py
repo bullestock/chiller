@@ -17,18 +17,21 @@ res = (cq.Workplane("XY")
        .box(stud_w, stud_w, stud_l, centered=(True, True, False))
        .edges(">Z")
        .chamfer(1)
+       .edges("|Z")
+       .fillet(1)
        )
+
+def ridge(z):
+   offset = 0.7
+   return (cq.Workplane("XY")
+           .transformed(offset=(0, 0, z))
+           .rarray(stud_w - offset, stud_w - offset, 2, 2)
+           .sphere(0.5)
+           )
 
 # Ridges on stud
 for i in range(1, 4):
-   res = (res
-          .workplaneFromTagged("o")
-          .transformed(offset=(0, 0, i*ridge_spacing))
-          .box(stud_w + 2*ridge_w, stud_w + 2*ridge_w, ridge_h)
-         )
-
-# Fillet stud and ridges
-res = res.edges("|Z").fillet(1)
+   res = (res + ridge(i*ridge_spacing))
 
 # Construct bracket
 bracket = (cq.Workplane("XY")
