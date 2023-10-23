@@ -8,8 +8,8 @@ od = 15
 angle = 0
 ch = th/2
 sd = 3
-st = 1.5 #1.5
-cr = 1
+st = 1.5
+cr = 3
 
 dist_to_corner = w/2 - w*math.cos(math.radians(90 - angle))
 inset = (w - od)/2
