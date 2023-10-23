@@ -38,11 +38,11 @@ result = (cq.Workplane("XY")
           )
 
 chamfer1 = (cq.Workplane("XY")
-           .transformed(rotate=(0, 45, 0), offset=(-th, w/2, 0))
+           .transformed(rotate=(0, 45, 0), offset=(-1.2*th, w/2, 0))
            .box(th, 2*w, th)
            )
 chamfer2 = (cq.Workplane("XY")
-           .transformed(rotate=(0, 45, 0), offset=(-th, w/2, length))
+           .transformed(rotate=(0, 45, 0), offset=(-1.2*th, w/2, length))
            .box(th, 2*w, th)
            )
 
