@@ -12,11 +12,8 @@ st = 1.5 #1.5
 cr = 1
 
 dist_to_corner = w/2 - w*math.cos(math.radians(90 - angle))
-log(f'dtc: {dist_to_corner}')
 inset = (w - od)/2
-
 arc_mid = w/2 + math.cos(math.radians(45)) * od/2
-log(f'arc_mid: {arc_mid}')
 
 result = (cq.Workplane("XY")
           .tag('o')
@@ -25,7 +22,6 @@ result = (cq.Workplane("XY")
           .hLine(dist_to_corner)
           .vLine(-inset)
           .threePointArc((arc_mid, arc_mid), (w - inset, dist_to_corner))
-          #.lineTo(w - inset, dist_to_corner)
           .hLine(inset)
           .lineTo(w, 0)
           .close()
@@ -43,7 +39,7 @@ result = (cq.Workplane("XY")
           .lineTo(w - ch, -th)
           .lineTo(-(th - cr), -th)
           .lineTo(-th, -(th - cr))
-          .vLine(w + th - ch)
+          .vLine(w + th - ch - cr)
           .lineTo(-(th - ch), w)
           .hLine(st)
           .close()
@@ -52,13 +48,19 @@ result = (cq.Workplane("XY")
           .workplaneFromTagged('o')
           .workplane(th)
           .hLine(w - sd)
+          # right-side slot
           .vLine(-st)
           .hLine(sd)
           .lineTo(w - ch, -th)
+          # right-side chamfer
           .lineTo(-(th - cr), -th)
+          # bottom
           .lineTo(-th, -(th - cr))
-          .vLine(w + th - ch)
+          # left side
+          .vLine(w + th - ch - cr)
+          # top chamfer
           .lineTo(-(th - ch), w)
+          # top slot
           .vLine(-sd)
           .hLine(st)
           .close()
