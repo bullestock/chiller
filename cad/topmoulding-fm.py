@@ -48,8 +48,15 @@ chamfer2 = (cq.Workplane("XY")
            .box(th, 2*w, th)
            )
 
-result = result - chamfer1 - chamfer2
+slot_w = 20
+slot_offset = length - 120/2
+slot = (cq.Workplane("XY")
+        .transformed(offset=(5, w/2, length - slot_offset))
+        .box(10, 2*w, slot_w)
+        )
+
+result = result - chamfer1 - chamfer2 - slot
 
 show_object(result)
-#show_object(chamfer2)
+#show_object(slot)
 
