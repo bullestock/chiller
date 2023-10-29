@@ -13,11 +13,11 @@ result = (cq.Workplane("XY")
           .tag("o")
           # profile
           .hLine(-th)
-          .vLine(w + th)
-          .hLine(2*th)
+          .vLine(w)
+          .hLine(th)
           .vLine(-th)
-          .hLine(-th)
           .close()
+          .xsquare(w, w)
           .extrude(length)
           .faces(">Y")
           .fillet(1)
@@ -48,15 +48,7 @@ chamfer2 = (cq.Workplane("XY")
            .box(th, 2*w, th)
            )
 
-slot_w = 20
-slot_offset = length - 120/2
-slot = (cq.Workplane("XY")
-        .transformed(offset=(5, w/2, length - slot_offset))
-        .box(10, 2*w, slot_w)
-        )
-
-result = result - chamfer1 - chamfer2 - slot
+result = result - chamfer1 - chamfer2
 
 show_object(result)
-#show_object(slot)
 
