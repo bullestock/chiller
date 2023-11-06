@@ -1,6 +1,9 @@
 import cadquery as cq
 
-length = 310/2
+# front/back
+# length = 310/2
+# sides
+length = 177.5
 w = 20
 th = 3
 ch = 1.5
@@ -16,14 +19,13 @@ result = (cq.Workplane("XY")
           .vLine(w - ch)
           .lineTo(-(th -ch), w)
           .hLine(th - ch)
-          #.vLine(-w)
           .close()
           .extrude(length)
           # male
           .faces(">Z")
           .workplane()
           .hLine(-st)
-          .vLine(w)
+          .vLine(w-1.2)
           .hLine(st)
           .close()
           .extrude(sd)
@@ -31,7 +33,7 @@ result = (cq.Workplane("XY")
           .workplane()
           # female
           .hLine(-st)
-          .vLine(-w)
+          .vLine(-w+0.9)
           .hLine(st)
           .close()
           .cutBlind(-sd-1)
