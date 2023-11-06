@@ -29,3 +29,5 @@ res = (cq.Workplane("XY")
        .circle(holes_d/2)
        .cutThruAll()
        )
+
+show_object(result)
