@@ -1,6 +1,9 @@
 import cadquery as cq
 
-length = 310/2
+# front/back
+# length = 310/2
+# sides
+length = 178.5
 w = 20
 th = 3
 ch = 1.5
@@ -18,19 +21,17 @@ result = (cq.Workplane("XY")
           .hLine(th - ch)
           .close()
           .extrude(length)
-          .faces(">Y")
-          .fillet(1)
           .faces(">Z")
           .workplane()
           .hLine(-st)
-          .vLine(w-1)
+          .vLine(w-1.2)
           .hLine(st)
           .close()
           .extrude(sd)
           .faces("<Z")
           .workplane()
           .hLine(-st)
-          .vLine(-w+1)
+          .vLine(-w+1.2)
           .hLine(st)
           .close()
           .extrude(sd)
