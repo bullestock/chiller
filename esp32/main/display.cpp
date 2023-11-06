@@ -27,14 +27,16 @@ Display::Display(TFT_eSPI& tft)
     
     tft.setFreeFont(large_font);
     tft.setTextColor(TFT_WHITE);
-    std::string text = "Chiller";
+    const std::string text = std::string("Chiller V ") + std::string(VERSION);
+    add_line(text);
+}
+
+void Display::add_line(const std::string& text)
+{
     auto w = tft.textWidth(text.c_str(), GFXFF);
-    auto x = TFT_HEIGHT/2 - w/2;
-    tft.drawString(text.c_str(), x, large_textheight*1, GFXFF);
-    text = std::string("V ") + std::string(VERSION);
-    w = tft.textWidth(text.c_str(), GFXFF);
-    x = TFT_HEIGHT/2 - w/2;
-    tft.drawString(text.c_str(), x, large_textheight*3, GFXFF);
+    const auto x = TFT_HEIGHT/2 - w/2;
+    tft.drawString(text.c_str(), x, cur_line*large_textheight, GFXFF);
+    ++cur_line;
 }
 
 /// Get upper left corner pixel coordinates of a quadrant
@@ -61,7 +63,6 @@ void Display::show_legend(int quadrant, const std::string& legend)
     const int x = ul.first + (TFT_HEIGHT/2 - w)/2;
     const int y = ul.second;
     tft.drawString(legend.c_str(), x, y, GFXFF);
-
 }
 
 static std::vector<std::string> split(const std::string& s)

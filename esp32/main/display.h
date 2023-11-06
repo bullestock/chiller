@@ -12,6 +12,9 @@ class Display
 public:
     Display(TFT_eSPI& tft);
 
+    /// For progress reporting during initialization
+    void add_line(const std::string& text);
+
     void show_legends();
 
     void show_fatal_error(const std::string& error);
@@ -40,6 +43,7 @@ private:
     int small_textheight = 0;
     int medium_textheight = 0;
     int large_textheight = 0;
+    int cur_line = 0;
     std::string last_status;
     float last_value[NOF_QUADRANTS];
 };

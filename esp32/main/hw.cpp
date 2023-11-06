@@ -1,5 +1,6 @@
 #include "hw.h"
 #include "defs.h"
+#include "display.h"
 #include "util.h"
 
 #include <limits>
@@ -103,23 +104,34 @@ void detect_ds18b20(Display& display)
                              RMT_CHANNEL_1, RMT_CHANNEL_0);
     owb_use_crc(owb, true);
 
+    int attempt = 0;
     OneWireBus_ROMCode device_rom_codes[NUM_DS18B20_DEVICES];
-    OneWireBus_SearchState search_state = {0};
-    bool found = false;
-    owb_search_first(owb, &search_state, &found);
-    while (found)
+    while (attempt < 5)
     {
-        char rom_code_s[17];
-        owb_string_from_rom_code(search_state.rom_code,
-                                 rom_code_s, sizeof(rom_code_s));
-        printf("DS18B20 #%d : %s\n", num_ds18b20_devices, rom_code_s);
-        device_rom_codes[num_ds18b20_devices] = search_state.rom_code;
-        ++num_ds18b20_devices;
-        if (num_ds18b20_devices > NUM_DS18B20_DEVICES)
-            fatal_error(display, "Too many\nDS18B20 devices");
-        owb_search_next(owb, &search_state, &found);
+        display.add_line("Detecting HW");
+        num_ds18b20_devices = 0;
+        OneWireBus_SearchState search_state = {0};
+        bool found = false;
+        owb_search_first(owb, &search_state, &found);
+        while (found)
+        {
+            char rom_code_s[17];
+            owb_string_from_rom_code(search_state.rom_code,
+                                     rom_code_s, sizeof(rom_code_s));
+            printf("DS18B20 #%d : %s\n", num_ds18b20_devices, rom_code_s);
+            device_rom_codes[num_ds18b20_devices] = search_state.rom_code;
+            ++num_ds18b20_devices;
+            display.add_line("Found temp sensor");
+            if (num_ds18b20_devices > NUM_DS18B20_DEVICES)
+                fatal_error(display, "Too many\nDS18B20 devices");
+            owb_search_next(owb, &search_state, &found);
+        }
+        printf("Found %d DS18B20 device%s\n", num_ds18b20_devices, num_ds18b20_devices == 1 ? "" : "s");
+        if (num_ds18b20_devices == NUM_DS18B20_DEVICES)
+            break;
+        ++attempt;
+        display.add_line("Retrying");
     }
-    printf("Found %d DS18B20 device%s\n", num_ds18b20_devices, num_ds18b20_devices == 1 ? "" : "s");
 #ifndef SIMULATE
     if (num_ds18b20_devices != NUM_DS18B20_DEVICES)
         fatal_error(display, "DS18B20 device(s)\nmissing");
@@ -133,6 +145,7 @@ void detect_ds18b20(Display& display)
         ds18b20_use_crc(ds18b20_info, true);
         ds18b20_set_resolution(ds18b20_info, RESOLUTION);
     }
+    display.add_line("HW init done");
 }
 
 void set_compressor(bool on)
