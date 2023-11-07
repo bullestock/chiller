@@ -10,6 +10,7 @@
 #include "defs.h"
 #include "display.h"
 #include "hw.h"
+#include "nvs.h"
 #include "util.h"
 
 #include <TFT_eSPI.h>
@@ -38,14 +39,18 @@ float add_temp_reading(int index, float temp)
 extern "C"
 void app_main()
 {
-    init_hardware();
-
-    TFT_eSPI tft;
-    
-    Display display(tft);
-
     printf("Chiller v %s\n", VERSION);
 
+    TFT_eSPI tft;
+    Display display(tft);
+
+    display.add_line("Initializing hardware");
+    init_hardware();
+
+    display.add_line("Initializing NVS");
+    init_nvs();
+
+    display.add_line("Wait for console");
     printf("\n\nPress a key to enter console\n");
     bool debug = false;
     for (int i = 0; i < 20; ++i)

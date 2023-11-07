@@ -4,6 +4,7 @@ idf_component_register(SRCS
                        console.cpp
                        display.cpp
                        hw.cpp
+                       nvs.cpp
                        util.cpp
                        INCLUDE_DIRS ".")
 

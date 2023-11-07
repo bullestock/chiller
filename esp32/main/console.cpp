@@ -2,6 +2,7 @@
 #include "defs.h"
 #include "display.h"
 #include "hw.h"
+#include "nvs.h"
 
 #include <string>
 
@@ -189,7 +190,27 @@ static int test_current(int, char**)
     printf("done\n");
     return 0;
 }
- 
+
+struct
+{
+    struct arg_int* swap;
+    struct arg_end* end;
+} set_swap_temp_sensors_args;
+
+static int set_swap_temp_sensors(int argc, char** argv)
+{
+    int nerrors = arg_parse(argc, argv, (void**) &set_swap_temp_sensors_args);
+    if (nerrors != 0)
+    {
+        arg_print_errors(stderr, set_swap_temp_sensors_args.end, argv[0]);
+        return 1;
+    }
+    const bool swap = set_swap_temp_sensors_args.swap->ival[0];
+    set_highest_index_is_water(!swap);
+    printf("OK: Swap is %d\n", swap);
+    return 0;
+}
+
 static int reboot(int, char**)
 {
     printf("Reboot...\n");
@@ -338,6 +359,17 @@ void run_console(Display& display)
         .argtable = nullptr
     };
     ESP_ERROR_CHECK(esp_console_cmd_register(&test_current_cmd));
+
+    set_swap_temp_sensors_args.swap = arg_int1(NULL, NULL, "<boolean>", "Swap");
+    set_swap_temp_sensors_args.end = arg_end(2);
+    const esp_console_cmd_t set_swap_temp_sensors_cmd = {
+        .command = "set_swap_temp_sensors",
+        .help = "Set if temp sensors should be swapped",
+        .hint = nullptr,
+        .func = &set_swap_temp_sensors,
+        .argtable = &set_swap_temp_sensors_args
+    };
+    ESP_ERROR_CHECK(esp_console_cmd_register(&set_swap_temp_sensors_cmd));
 
     const esp_console_cmd_t reboot_cmd = {
         .command = "reboot",

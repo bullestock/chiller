@@ -23,6 +23,8 @@ constexpr const auto PIN_FLOW = (gpio_num_t) 35;
 
 constexpr const char* TAG = "CHLR";
 
+constexpr const char* HIGHEST_INDEX_IS_WATER_KEY = "HIIW";
+
 // High/low temperature for thermostat (degrees)
 constexpr const float LOW_TEMP = 20.0;
 constexpr const float HIGH_TEMP = 25.0;

@@ -1,6 +1,7 @@
 #include "hw.h"
 #include "defs.h"
 #include "display.h"
+#include "nvs.h"
 #include "util.h"
 
 #include <limits>
@@ -25,6 +26,7 @@ static owb_rmt_driver_info rmt_driver_info;
 static int num_ds18b20_devices = 0;
 static DS18B20_Info* ds18b20_devices[NUM_DS18B20_DEVICES] = {0};
 static adc_oneshot_unit_handle_t adc1_handle;
+static bool highest_index_is_water = true;
 
 void init_hardware()
 {
@@ -96,6 +98,8 @@ void init_hardware()
     ESP_ERROR_CHECK(adc_oneshot_config_channel(adc1_handle,
                                                static_cast<adc_channel_t>(3), // SensVN
                                                &config));
+
+    highest_index_is_water = get_highest_index_is_water();
 }
 
 void detect_ds18b20(Display& display)
@@ -108,7 +112,7 @@ void detect_ds18b20(Display& display)
     OneWireBus_ROMCode device_rom_codes[NUM_DS18B20_DEVICES];
     while (attempt < 5)
     {
-        display.add_line("Detecting HW");
+        display.add_line("Detecting sensors");
         num_ds18b20_devices = 0;
         OneWireBus_SearchState search_state = {0};
         bool found = false;
@@ -118,7 +122,7 @@ void detect_ds18b20(Display& display)
             char rom_code_s[17];
             owb_string_from_rom_code(search_state.rom_code,
                                      rom_code_s, sizeof(rom_code_s));
-            printf("DS18B20 #%d : %s\n", num_ds18b20_devices, rom_code_s);
+            printf("DS18B20 #%d: %s\n", num_ds18b20_devices, rom_code_s);
             device_rom_codes[num_ds18b20_devices] = search_state.rom_code;
             ++num_ds18b20_devices;
             display.add_line("Found temp sensor");
@@ -198,12 +202,28 @@ Temperatures read_temperatures()
         for (int i = 0; i < num_ds18b20_devices; ++i)
             errors[i] = ds18b20_read_temp(ds18b20_devices[i], &readings[i]);
 
+        uint8_t highest_serial_number[6];
+        int highest_serial_number_index = 0;
+        memset(highest_serial_number, 0, sizeof(highest_serial_number));
         for (int i = 0; i < num_ds18b20_devices; ++i)
+        {
+            if (memcmp(ds18b20_devices[i]->rom_code.fields.serial_number,
+                       highest_serial_number, sizeof(highest_serial_number)) > 0)
+            {
+                memcpy(highest_serial_number,
+                       ds18b20_devices[i]->rom_code.fields.serial_number,
+                       sizeof(highest_serial_number));
+                highest_serial_number_index = i;
+            }
             if (errors[i] != DS18B20_OK)
                 readings[i] = std::numeric_limits<float>::quiet_NaN();
-        // TODO
-        values.water = readings[0];
-        values.compressor = readings[1];
+        }
+        int water_index = highest_serial_number_index;
+        int compressor_index = NUM_DS18B20_DEVICES - 1 - highest_serial_number_index;
+        if (!highest_index_is_water)
+            std::swap(water_index, compressor_index);
+        values.water = readings[water_index];
+        values.compressor = readings[compressor_index];
     }
     return values;
 }
