@@ -41,11 +41,10 @@ void app_main()
 {
     printf("Chiller v %s\n", VERSION);
 
+    init_hardware();
+
     TFT_eSPI tft;
     Display display(tft);
-
-    display.add_line("Initializing hardware");
-    init_hardware();
 
     display.add_line("Initializing NVS");
     init_nvs();
