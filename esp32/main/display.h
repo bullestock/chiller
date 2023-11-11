@@ -12,6 +12,8 @@ class Display
 public:
     Display(TFT_eSPI& tft);
 
+    void clear();
+    
     /// For progress reporting during initialization
     void add_line(const std::string& text);
 

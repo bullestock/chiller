@@ -25,17 +25,23 @@ Display::Display(TFT_eSPI& tft)
     tft.setFreeFont(large_font);
     large_textheight = tft.fontHeight(GFXFF) + 1;
     
-    tft.setFreeFont(large_font);
-    tft.setTextColor(TFT_WHITE);
+    tft.setFreeFont(medium_font);
+    tft.setTextColor(TFT_GREEN);
     const std::string text = std::string("Chiller V ") + std::string(VERSION);
     add_line(text);
+}
+
+void Display::clear()
+{
+    tft.fillScreen(TFT_BLACK);
+    cur_line = 0;
 }
 
 void Display::add_line(const std::string& text)
 {
     auto w = tft.textWidth(text.c_str(), GFXFF);
     const auto x = TFT_HEIGHT/2 - w/2;
-    tft.drawString(text.c_str(), x, cur_line*large_textheight, GFXFF);
+    tft.drawString(text.c_str(), x, cur_line*medium_textheight, GFXFF);
     ++cur_line;
 }
 

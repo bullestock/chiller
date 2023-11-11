@@ -15,8 +15,9 @@
 #include "ds18b20.h"
 
 const int NUM_DS18B20_DEVICES = 2;
+const int MAX_ATTEMPTS = 5;
 const auto RESOLUTION = DS18B20_RESOLUTION_12_BIT;
-//#define SAMPLE_PERIOD        (1000)   // milliseconds
+
 
 #include <freertos/FreeRTOS.h>
 #include <driver/ledc.h>
@@ -110,7 +111,7 @@ void detect_ds18b20(Display& display)
 
     int attempt = 0;
     OneWireBus_ROMCode device_rom_codes[NUM_DS18B20_DEVICES];
-    while (attempt < 5)
+    while (attempt < MAX_ATTEMPTS)
     {
         display.add_line("Detecting sensors");
         num_ds18b20_devices = 0;
@@ -134,7 +135,12 @@ void detect_ds18b20(Display& display)
         if (num_ds18b20_devices == NUM_DS18B20_DEVICES)
             break;
         ++attempt;
-        display.add_line("Retrying");
+        display.clear();
+        const auto retry_msg = std::string("Retrying (") +
+            std::string(1, '0' + attempt) +
+            std::string("/") +
+            std::string(1, '0' + MAX_ATTEMPTS);
+        display.add_line(retry_msg);
     }
 #ifndef SIMULATE
     if (num_ds18b20_devices != NUM_DS18B20_DEVICES)
