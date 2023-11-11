@@ -47,5 +47,5 @@ private:
     int large_textheight = 0;
     int cur_line = 0;
     std::string last_status;
-    float last_value[NOF_QUADRANTS];
+    std::string last_value[NOF_QUADRANTS];
 };

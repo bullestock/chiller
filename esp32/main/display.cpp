@@ -11,9 +11,6 @@ static constexpr const int LEGEND_HEIGHT = 22;
 Display::Display(TFT_eSPI& tft)
     : tft(tft)
 {
-    for (int i = 0; i < NOF_QUADRANTS; ++i)
-        last_value[i] = 0;
-
     tft.init();
     tft.setRotation(1);
     tft.fillScreen(TFT_BLACK);
@@ -172,9 +169,6 @@ void Display::show_value(int quadrant, float value,
                          int nof_int_digits, int nof_dec_digits,
                          const Thresholds& thresholds, bool invert)
 {
-    if (value == last_value[quadrant])
-        return;
-    last_value[quadrant] = value;
     const auto ul = get_quadrant_ul(quadrant);
     char int_buf[20];
     const int int_val = static_cast<int>(value);
@@ -182,12 +176,19 @@ void Display::show_value(int quadrant, float value,
     int w = tft.textWidth(int_buf, 8);
     const int int_w = w;
     char dec_buf[20];
+    dec_buf[0] = 0;
     if (nof_dec_digits)
     {
         const int decimal_digits = std::round((value - int_val)*std::pow(10, nof_dec_digits));
         sprintf(dec_buf, ".%0*d", nof_dec_digits, decimal_digits);
         w += tft.textWidth(dec_buf, 6);
     }
+    // Check for changes
+    const auto new_value = std::string(int_buf) + std::string(".") + std::string(dec_buf);
+    if (new_value == last_value[quadrant])
+        return;
+    last_value[quadrant] = new_value;
+
     set_colour(value, thresholds, invert);
     tft.fillRect(ul.first, ul.second + LEGEND_HEIGHT, TFT_HEIGHT/2, TFT_WIDTH/2 - LEGEND_HEIGHT, TFT_BLACK);
 
