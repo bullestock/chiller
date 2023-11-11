@@ -15,23 +15,24 @@
 
 #include <TFT_eSPI.h>
 
-static float temp_readings[2][TEMP_AVERAGES];
+static std::vector<std::vector<float>> temp_readings;
 
 float add_temp_reading(int index, float temp)
 {
 #ifdef SIMULATE
     return temp;
 #else
-    int sum = 0;
-    for (int i = 1; i < TEMP_AVERAGES; ++i)
+    while (temp_readings.size() < 2)
+        temp_readings.push_back(std::vector<float>());
+    if (temp_readings[index].size() >= TEMP_AVERAGES)
+        temp_readings[index].pop_back();
+    temp_readings[index].push_back(temp);
+    float sum = 0.0;
+    for (auto val : temp_readings[index])
     {
-        const auto t = temp_readings[index][i];
-        sum += t;
-        temp_readings[index][i-1] = t;
+        sum += val;
     }
-    temp_readings[index][TEMP_AVERAGES-1] = temp;
-    sum += temp;
-    return sum/TEMP_AVERAGES;
+    return sum/temp_readings[index].size();
 #endif
 }
 
