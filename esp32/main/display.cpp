@@ -132,7 +132,9 @@ void Display::set_colour(float value,
                          const Thresholds& thresholds,
                          bool invert)
 {
+#ifdef DEBUG
     printf("set_colour: %f\n", value);
+#endif
     uint16_t colour = TFT_WHITE;
     if (invert)
         for (auto it = thresholds.rbegin(); it != thresholds.rend(); ++it)
@@ -147,11 +149,15 @@ void Display::set_colour(float value,
     else
         for (const auto& t : thresholds)
         {
+#ifdef DEBUG
             printf("th %f\n", t.first);
+#endif
             if (value >= t.first)
             {
                 colour = t.second;
+#ifdef DEBUG
                 printf("using %d\n", colour);
+#endif
             }
         }
     tft.setTextColor(colour);
