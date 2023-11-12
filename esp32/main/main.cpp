@@ -198,6 +198,8 @@ void app_main()
         if (compressor_on)
         {
             state = "Cooling";
+            if (fan_on)
+                state = "Cooling+fan";
             state_colour = TFT_BLUE;
         }
         if (low_flow)

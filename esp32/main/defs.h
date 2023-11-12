@@ -54,3 +54,6 @@ constexpr const int TEMP_AVERAGES = 5;
 
 // Number of consecutive errors to trigger fault condition
 constexpr const int CONSECUTIVE_ERRORS = 5;
+
+// Duty cycle for fan (0-1023)
+constexpr const int FAN_DUTY_CYCLE = 512;

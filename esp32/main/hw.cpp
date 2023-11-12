@@ -18,7 +18,6 @@ const int NUM_DS18B20_DEVICES = 2;
 const int MAX_ATTEMPTS = 5;
 const auto RESOLUTION = DS18B20_RESOLUTION_12_BIT;
 
-
 #include <freertos/FreeRTOS.h>
 #include <driver/ledc.h>
 
@@ -63,6 +62,8 @@ void init_hardware()
     set_compressor(false);
     set_ready(false);
 
+    // Set up pulse counter for flow sensor
+    
     pcnt_config_t pcnt_config;
     pcnt_config.pulse_gpio_num = PIN_FLOW;
     pcnt_config.ctrl_gpio_num = -1;
@@ -83,6 +84,8 @@ void init_hardware()
     pcnt_filter_enable(PCNT_UNIT_0);
     pcnt_counter_resume(PCNT_UNIT_0);
 
+    // Set up ADC for current sensor
+    
     adc_oneshot_unit_init_cfg_t init_config1 = {
         .unit_id = ADC_UNIT_1,
 #if ESP_IDF_VERSION >= ESP_IDF_VERSION_VAL(5, 1, 0)
@@ -100,20 +103,43 @@ void init_hardware()
                                                static_cast<adc_channel_t>(3), // SensVN
                                                &config));
 
+    // Set up LEDC PWM for fan
+    
+    ledc_timer_config_t ledc_timer = {
+        .speed_mode       = LEDC_LOW_SPEED_MODE,
+        .duty_resolution  = LEDC_TIMER_10_BIT,
+        .timer_num        = LEDC_TIMER_0,
+        .freq_hz          = 1000,  // Set output frequency at 1 kHz
+        .clk_cfg          = LEDC_AUTO_CLK
+    };
+    ESP_ERROR_CHECK(ledc_timer_config(&ledc_timer));
+
+    ledc_channel_config_t ledc_channel = {
+        .gpio_num       = PIN_FAN,
+        .speed_mode     = LEDC_LOW_SPEED_MODE,
+        .channel        = LEDC_CHANNEL_0,
+        .intr_type      = LEDC_INTR_DISABLE,
+        .timer_sel      = LEDC_TIMER_0,
+        .duty           = 0, // Set duty to 0%
+        .hpoint         = 0,
+    };
+    ESP_ERROR_CHECK(ledc_channel_config(&ledc_channel));
+
     highest_index_is_water = get_highest_index_is_water();
 }
 
 void detect_ds18b20(Display& display)
 {
-    owb = owb_rmt_initialize(&rmt_driver_info, PIN_TEMP,
-                             RMT_CHANNEL_1, RMT_CHANNEL_0);
-    owb_use_crc(owb, true);
-
     int attempt = 0;
     OneWireBus_ROMCode device_rom_codes[NUM_DS18B20_DEVICES];
     while (attempt < MAX_ATTEMPTS)
     {
         display.add_line("Detecting sensors");
+
+        owb = owb_rmt_initialize(&rmt_driver_info, PIN_TEMP,
+                             RMT_CHANNEL_1, RMT_CHANNEL_0);
+        owb_use_crc(owb, true);
+
         num_ds18b20_devices = 0;
         OneWireBus_SearchState search_state = {0};
         bool found = false;
@@ -135,12 +161,16 @@ void detect_ds18b20(Display& display)
         if (num_ds18b20_devices == NUM_DS18B20_DEVICES)
             break;
         ++attempt;
+
+        rmt_driver_info.bus.driver->uninitialize(owb);
+
         display.clear();
         const auto retry_msg = std::string("Retrying (") +
             std::string(1, '0' + attempt) +
             std::string("/") +
             std::string(1, '0' + MAX_ATTEMPTS);
         display.add_line(retry_msg);
+        vTaskDelay(1000/portTICK_PERIOD_MS);
     }
 #ifndef SIMULATE
     if (num_ds18b20_devices != NUM_DS18B20_DEVICES)
@@ -175,7 +205,8 @@ void set_buzzer(bool on)
 
 void set_fan(bool on)
 {
-    ESP_ERROR_CHECK(gpio_set_level(PIN_FAN, !on));
+    ESP_ERROR_CHECK(ledc_set_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_0, on ? FAN_DUTY_CYCLE : 0));
+    ESP_ERROR_CHECK(ledc_update_duty(LEDC_LOW_SPEED_MODE, LEDC_CHANNEL_0));
 }
 
 int get_and_reset_flow_pulses()
