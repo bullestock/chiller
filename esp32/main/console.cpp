@@ -211,6 +211,26 @@ static int set_swap_temp_sensors(int argc, char** argv)
     return 0;
 }
 
+struct
+{
+    struct arg_int* pwm;
+    struct arg_end* end;
+} set_fan_pwm_args;
+
+static int set_fan_pwm(int argc, char** argv)
+{
+    int nerrors = arg_parse(argc, argv, (void**) &set_fan_pwm_args);
+    if (nerrors != 0)
+    {
+        arg_print_errors(stderr, set_fan_pwm_args.end, argv[0]);
+        return 1;
+    }
+    const int pwm = set_fan_pwm_args.pwm->ival[0];
+    set_fan_pwm(pwm);
+    printf("OK: Fan PWM is %d\n", pwm);
+    return 0;
+}
+
 static int reboot(int, char**)
 {
     printf("Reboot...\n");
@@ -370,6 +390,17 @@ void run_console(Display& display)
         .argtable = &set_swap_temp_sensors_args
     };
     ESP_ERROR_CHECK(esp_console_cmd_register(&set_swap_temp_sensors_cmd));
+
+    set_fan_pwm_args.pwm = arg_int1(NULL, NULL, "<int>", "duty cycle");
+    set_fan_pwm_args.end = arg_end(2);
+    const esp_console_cmd_t set_fan_pwm_cmd = {
+        .command = "set_fan_pwm",
+        .help = "Set fan PWM value",
+        .hint = nullptr,
+        .func = &set_fan_pwm,
+        .argtable = &set_fan_pwm_args
+    };
+    ESP_ERROR_CHECK(esp_console_cmd_register(&set_fan_pwm_cmd));
 
     const esp_console_cmd_t reboot_cmd = {
         .command = "reboot",

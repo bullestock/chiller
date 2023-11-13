@@ -9,6 +9,7 @@
 #include "nvs_flash.h"
 
 static bool highest_index_is_water = false;
+static int fan_pwm = 512;
 
 void set_highest_index_is_water(bool value)
 {
@@ -23,6 +24,20 @@ bool get_highest_index_is_water()
 {
     return highest_index_is_water;
 }
+
+int get_fan_pwm()
+{
+    return fan_pwm;
+}
+
+void set_fan_pwm(int pwm)
+{
+    nvs_handle my_handle;
+    ESP_ERROR_CHECK(nvs_open("storage", NVS_READWRITE, &my_handle));
+    ESP_ERROR_CHECK(nvs_set_u16(my_handle, FAN_PWM_KEY, pwm));
+    fan_pwm = pwm;
+    nvs_close(my_handle);
+}    
 
 void init_nvs()
 {

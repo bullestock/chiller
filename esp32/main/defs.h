@@ -25,6 +25,7 @@ constexpr const auto PIN_FLOW = (gpio_num_t) 35;
 constexpr const char* TAG = "CHLR";
 
 constexpr const char* HIGHEST_INDEX_IS_WATER_KEY = "HIIW";
+constexpr const char* FAN_PWM_KEY = "FPWM";
 
 // High/low temperature for thermostat (degrees)
 constexpr const float LOW_TEMP = 20.0;
@@ -55,6 +56,3 @@ constexpr const int TEMP_AVERAGES = 5;
 
 // Number of consecutive errors to trigger fault condition
 constexpr const int CONSECUTIVE_ERRORS = 5;
-
-// Duty cycle for fan (0-1023)
-constexpr const int FAN_DUTY_CYCLE = 512;
