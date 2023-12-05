@@ -4697,7 +4697,7 @@
     (property "Value" "SS34" (at 242.57 145.415 90)
       (effects (font (size 1.27 1.27)) (justify left))
     )
-    (property "Footprint" "Diode_SMD:D_SMC" (at 248.92 144.78 0)
+    (property "Footprint" "Diode_SMD:D_SMA" (at 248.92 144.78 0)
       (effects (font (size 1.27 1.27)) hide)
     )
     (property "Datasheet" "~" (at 248.92 144.78 0)
