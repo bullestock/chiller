@@ -123,6 +123,9 @@ void init_hardware()
         .timer_sel      = LEDC_TIMER_0,
         .duty           = 0, // Set duty to 0%
         .hpoint         = 0,
+        .flags = {
+            .output_invert  = 1,
+        },
     };
     ESP_ERROR_CHECK(ledc_channel_config(&ledc_channel));
 
