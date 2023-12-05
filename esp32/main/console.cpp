@@ -114,7 +114,7 @@ static int test_fan(int, char**)
 {
     printf("Running fan test\n");
 
-    for (int n = 0; n < 10; ++n)
+    for (int n = 0; n < 3; ++n)
     {
         printf("On\n");
         set_fan(true);
