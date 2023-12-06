@@ -110,7 +110,7 @@ void init_hardware()
         .speed_mode       = LEDC_LOW_SPEED_MODE,
         .duty_resolution  = LEDC_TIMER_10_BIT,
         .timer_num        = LEDC_TIMER_0,
-        .freq_hz          = 1000,  // Set output frequency at 1 kHz
+        .freq_hz          = 20000,  // Set output frequency at 20 kHz
         .clk_cfg          = LEDC_AUTO_CLK
     };
     ESP_ERROR_CHECK(ledc_timer_config(&ledc_timer));
@@ -172,7 +172,8 @@ void detect_ds18b20(Display& display)
         const auto retry_msg = std::string("Retrying (") +
             std::string(1, '0' + attempt) +
             std::string("/") +
-            std::string(1, '0' + MAX_ATTEMPTS);
+            std::string(1, '0' + MAX_ATTEMPTS) +
+            std::string(")");
         display.add_line(retry_msg);
         vTaskDelay(1000/portTICK_PERIOD_MS);
     }
