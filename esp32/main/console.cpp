@@ -24,11 +24,11 @@ static Display* the_display = nullptr;
 
 static int toggle_compressor_relay(int, char**)
 {
-    for (int n = 0; n < 10; ++n)
+    for (int n = 0; n < 3; ++n)
     {
-        vTaskDelay(500/portTICK_PERIOD_MS);
+        vTaskDelay(5000/portTICK_PERIOD_MS);
         set_compressor(true);
-        vTaskDelay(500/portTICK_PERIOD_MS);
+        vTaskDelay(5000/portTICK_PERIOD_MS);
         set_compressor(false);
     }
     printf("done\n");
@@ -118,7 +118,7 @@ static int test_fan(int, char**)
     {
         printf("On\n");
         set_fan(true);
-        vTaskDelay(5000/portTICK_PERIOD_MS);
+        vTaskDelay(10000/portTICK_PERIOD_MS);
         printf("Off\n");
         set_fan(false);
         vTaskDelay(5000/portTICK_PERIOD_MS);
