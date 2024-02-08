@@ -3755,7 +3755,7 @@
     (property "Reference" "C6" (at 259.08 243.8399 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
-    (property "Value" "100n" (at 259.08 246.3799 0)
+    (property "Value" "1u" (at 259.08 246.3799 0)
       (effects (font (size 1.27 1.27)) (justify left))
     )
     (property "Footprint" "Capacitor_SMD:C_0603_1608Metric" (at 256.2352 248.92 0)

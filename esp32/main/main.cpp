@@ -75,6 +75,8 @@ void app_main()
     bool signal_ok = false;
     int nof_consecutive_errors = 0;
     int nof_consecutive_clears = 0;
+    int bad_water_temp_readings = 0;
+    int bad_compressor_temp_readings = 0;
     bool first = true;
     bool initializing = true;
     unsigned long last_flow_time = 0;
@@ -95,10 +97,22 @@ void app_main()
 
         const auto temps = read_temperatures();
         if (std::isnan(temps.water))
-            fatal_error(display, "Water\ntemperature\nsensor\nmalfunction");
+        {
+            ++bad_water_temp_readings;
+            if (bad_water_temp_readings > 5)
+                fatal_error(display, "Water\ntemperature\nsensor\nmalfunction");
+        }
+        else
+            bad_water_temp_readings = 0;
         if (std::isnan(temps.compressor))
-            fatal_error(display, "Compressor\ntemperature\nsensor\nmalfunction");
-
+        {
+            ++bad_compressor_temp_readings;
+            if (bad_compressor_temp_readings > 5)
+                fatal_error(display, "Compressor\ntemperature\nsensor\nmalfunction");
+        }
+        else
+            bad_compressor_temp_readings = 0;
+        
         auto temp = add_temp_reading(0, temps.water);
         display.show_temperature(0, temp, water_thresholds);
         temp = add_temp_reading(1, temps.compressor);
