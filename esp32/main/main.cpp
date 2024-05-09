@@ -135,6 +135,7 @@ void app_main()
             liters_per_hour = (flow_pulses*60000.0/deltaTime / 7.5);
             printf("Flow: %d\n", liters_per_hour);
             first = false;
+            initializing = false;
         }
 #endif
         
@@ -202,6 +203,9 @@ void app_main()
         if (low_flow)
             signal_ok = false;
 
+        if (initializing)
+            signal_ok = false;
+        
         // Signal status to Lasersaur
         set_ready(signal_ok);
 

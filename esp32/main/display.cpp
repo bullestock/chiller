@@ -171,7 +171,12 @@ void Display::show_value(int quadrant, float value,
 {
     const auto ul = get_quadrant_ul(quadrant);
     char int_buf[20];
-    const int int_val = static_cast<int>(value);
+    // nof_dec_digits = 2 -> scale_factor = 100
+    const int scale_factor = std::pow(10, nof_dec_digits);
+    // value = 1.23 -> scaled_val = 123
+    const int scaled_val = static_cast<int>(value * scale_factor);
+    // int_val = 1
+    const int int_val = scaled_val / scale_factor;
     sprintf(int_buf, "%*d", nof_int_digits, int_val);
     int w = tft.textWidth(int_buf, 8);
     const int int_w = w;
@@ -179,7 +184,8 @@ void Display::show_value(int quadrant, float value,
     dec_buf[0] = 0;
     if (nof_dec_digits)
     {
-        const int decimal_digits = std::round((value - int_val)*std::pow(10, nof_dec_digits));
+        // decimal_digits = 123 - 1 * 100 = 23
+        const int decimal_digits = scaled_val - int_val * scale_factor;
         sprintf(dec_buf, ".%0*d", nof_dec_digits, decimal_digits);
         w += tft.textWidth(dec_buf, 6);
     }
@@ -194,9 +200,9 @@ void Display::show_value(int quadrant, float value,
 
     const int x = ul.first + (TFT_HEIGHT/2 - w)/2;
     const int y = ul.second + TFT_WIDTH/8;
-    tft.drawString(int_buf, x, y, 8);
+    tft.drawString(int_buf, x, y, 8); // Font 8: 75 px
     if (nof_dec_digits)
-        tft.drawString(dec_buf, x + int_w, y + 38, 6);
+        tft.drawString(dec_buf, x + int_w, y + 38, 6); // Font 6: 48 px
 }
 
 void Display::show_temperature(int quadrant, float temp,

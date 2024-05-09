@@ -1,3 +1,4 @@
+#include "buzzer.h"
 #include "console.h"
 #include "defs.h"
 #include "display.h"
@@ -131,7 +132,7 @@ static int test_buzzer(int, char**)
 {
     printf("Running buzzer test\n");
 
-    for (int n = 0; n < 5; ++n)
+    for (int n = 0; n < 3; ++n)
     {
         printf("On\n");
         set_buzzer(true);
@@ -139,6 +140,26 @@ static int test_buzzer(int, char**)
         printf("Off\n");
         set_buzzer(false);
         vTaskDelay(2000/portTICK_PERIOD_MS);
+    }
+    vTaskDelay(1000/portTICK_PERIOD_MS);
+
+    Buzzer buzzer;
+    for (int n = 0; n < 3; ++n)
+    {
+        printf("Start\n");
+        buzzer.start();
+        for (int j = 0; j < 100; ++j)
+        {
+            vTaskDelay(10/portTICK_PERIOD_MS);
+            buzzer.update();
+        }
+        printf("Stop\n");
+        buzzer.stop();
+        for (int j = 0; j < 100; ++j)
+        {
+            vTaskDelay(10/portTICK_PERIOD_MS);
+            buzzer.update();
+        }
     }
     printf("done\n");
     return 0;
@@ -328,7 +349,7 @@ void run_console(Display& display)
 
     const esp_console_cmd_t test_flow_cmd = {
         .command = "test_flow",
-        .help = "Test flowerature sensors",
+        .help = "Test flow sensor",
         .hint = nullptr,
         .func = &test_flow,
         .argtable = nullptr

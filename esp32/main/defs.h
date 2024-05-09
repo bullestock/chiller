@@ -3,7 +3,7 @@
 #include <driver/gpio.h>
 #include <esp_adc/adc_oneshot.h>
 
-constexpr const char* VERSION = "0.4.1";
+constexpr const char* VERSION = "0.4.2";
 
 // Pin definitions
 constexpr const auto PIN_DISP_DC = (gpio_num_t) 2;
