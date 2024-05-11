@@ -4,14 +4,6 @@ spline_path = cq.Workplane("YX").spline(points)
 
 solid = cq.Workplane("YZ").rect(10, 12).sweep(spline_path)
 
-notch = (cq.Workplane("YZ")
-         .transformed(offset=(0, 3.5, 0))
-         .rect(2.5, 5)
-         .sweep(spline_path)
-)
-
-solid = solid - notch
-
 ir = 4/2
 ih = 5
 
@@ -37,4 +29,10 @@ solid = (solid
 
 show_object(solid)
 
-cq.exporters.export(solid, "/home/torsten/Downloads/tankedge1.svg")
+cq.exporters.export(solid,
+                    "/home/torsten/Downloads/tankseal1.svg",
+                    opt={
+                        "showAxes": False,
+                        "projectionDir": (0, 0, -1),
+                        "showHidden": True,
+                    })
