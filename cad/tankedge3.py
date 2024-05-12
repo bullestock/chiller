@@ -1,12 +1,10 @@
 from tankedgedefs import *
 
-pts = points
-points = []
-for p in pts:
-    points.append((-p[0], p[1]))
-    
+p = points[0]
+p = (p[0], p[1] - 2.5)
+points[0] = p
 p = points[-1]
-p = (p[0] - 11, p[1])
+p = (p[0] - 7.5, p[1])
 points[-1] = p
 
 spline_path = cq.Workplane("YX").spline(points)
@@ -34,10 +32,10 @@ solid = (solid
          .transformed(offset=(25, 0, 0))
          .circle(ir).cutBlind(-ih)
          .workplaneFromTagged("b")
-         .transformed(offset=(112, 150 + 11, 0))
+         .transformed(offset=(112, -(150 - 7.5), 0))
          .circle(ir).cutBlind(-ih)
          .workplaneFromTagged("b")
-         .transformed(offset=(112, 135 + 11, 0))
+         .transformed(offset=(112, -(135 - 7.5), 0))
          .circle(ir).cutBlind(-ih)
          .workplaneFromTagged("b")
          .transformed(offset=(112, 0, 0))

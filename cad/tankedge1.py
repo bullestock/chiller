@@ -36,5 +36,3 @@ solid = (solid
          )
 
 show_object(solid)
-
-cq.exporters.export(solid, "/home/torsten/Downloads/tankedge1.svg")
