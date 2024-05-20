@@ -283,7 +283,20 @@
     "equivalence_files": []
   },
   "erc": {
-    "erc_exclusions": [],
+    "erc_exclusions": [
+      [
+        "four_way_junction|1219200|1752600|3dfb3213-1c16-4968-ba72-409e073085d9|9a300d41-01c5-4a66-b70e-e2d51b193fe0|/212a0d71-cc7b-49f8-b4ca-a935e5355dca||",
+        ""
+      ],
+      [
+        "four_way_junction|1231900|1625600|859259b4-ab7d-43b1-895a-c4731215f070|d1405d53-5502-4c3f-934e-190125960608|/212a0d71-cc7b-49f8-b4ca-a935e5355dca||",
+        ""
+      ],
+      [
+        "four_way_junction|736600|952500|28417b2e-8588-47d2-85c6-869a138d70b7|8656f753-9eb2-4c4e-8793-f8ab95816647|/212a0d71-cc7b-49f8-b4ca-a935e5355dca||",
+        ""
+      ]
+    ],
     "meta": {
       "version": 0
     },
